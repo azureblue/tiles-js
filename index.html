@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <title>TODO: add title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            * {border: 0px; width: 100%; height: 100%; margin: 0px;}
+        </style>
+        <script src="board.js"></script>
+        <script src="geom.js"></script>
+        <script src="color.js"></script>
+        <script src="boardplane.js"></script>
+        <script>
+            function getContext() {
+                return document.getElementById("canvas").getContext("2d");
+            }
+            
+            function updateCanvasSize() {
+                var canvas = document.getElementById("canvas");
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+            }
+            
+            function start() {
+                updateCanvasSize();
+                var plane;
+                function resizeCallback() {
+                    updateCanvasSize();
+                    plane.render();
+                }
+                window.addEventListener("resize", resizeCallback);
+                var board = new Board(100, 100);
+                for (let i = 0; i < 100; i++)
+                    for (let j = 0; j < 100; j++)
+                        board.set(i, j, Math.random() * 255);
+                plane = new TilePlane(board, new SimpleTileRenderer(100), 100, document.getElementById("canvas"));
+                plane.render();
+            }
+        </script>
+    </head>
+    <body onload="start();">
+        <canvas id="canvas"></canvas>
+    </body>
+</html>
