@@ -10,6 +10,8 @@
         <script src="geom.js"></script>
         <script src="color.js"></script>
         <script src="boardplane.js"></script>
+        <script src="generator.js"></script>
+        <script src="terrain.js"></script>
         <script>
             function getContext() {
                 return document.getElementById("canvas").getContext("2d");
@@ -33,7 +35,11 @@
                 for (let i = 0; i < 100; i++)
                     for (let j = 0; j < 100; j++)
                         board.set(i, j, Math.random() * 255);
-                plane = new TilePlane(board, new SimpleTileRenderer(100), 100, document.getElementById("canvas"));
+                var randGen = new RandomGenerator([0, 1, 2], [2, 1, 1]);
+                var terraRender = new TerrainRenderer();
+                randGen.generate(board);
+                
+                plane = new TilePlane(board, terraRender, 50, document.getElementById("canvas"));
                 plane.render();
             }
         </script>

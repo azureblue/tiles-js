@@ -11,6 +11,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
     canvas.addEventListener("mousedown", handle_mouse_down);
     canvas.addEventListener("mouseup", handle_mouse_drag_stop);
     canvas.addEventListener("mouseout", handle_mouse_drag_stop);
+    canvas.addEventListener("mousewheel", handle_mouse_wheel);
 
     this.render = render;
 
@@ -38,7 +39,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
         ctx.translate(screenPos.x, screenPos.y);
         if (selected && selected.same_position(tilePos))
             tile = Math.min(tile + 100, 255);
-        tileRenderer.render(tile, ctx);
+        tileRenderer.render(ctx, tile, tileSize);
         ctx.translate(-screenPos.x, -screenPos.y);
     }
     
@@ -81,12 +82,19 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
         mouse_move_point = temp_mouse_move_point;
         render();
     }
+    
+    function handle_mouse_wheel(event) {
+        tileSize += (((event.wheelDelta ? event.wheelDelta : -event.detail) > 0) ? 10 : -10);
+        if (tileSize < 10)
+            tileSize = 10;
+        render();
+    }
 
     this.getCanvas = () => canvas;
 }
 
-function SimpleTileRenderer(tileSize) {
-    this.render = (tile, ctx) => {
+function SimpleTileRenderer() {
+    this.render = (ctx, tile, tileSize) => {
         tile = tile ? tile : 100;
         ctx.fillStyle = new Color(tile, tile, tile).toFillStyle();
         ctx.fillRect(0, 0, tileSize, tileSize);
