@@ -7,6 +7,12 @@ Vec.prototype.vector_to = function (vec) {
     return new Vec(vec.x - this.x, vec.y - this.y);
 };
 
+Vec.prototype.set = function (x, y) {
+    this.x = x;
+    this.y = y;
+    return this;
+};
+
 Vec.prototype.same_position = function (vec) {
     return (this.x === vec.x) && (this.y === vec.y);
 };

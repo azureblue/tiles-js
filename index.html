@@ -35,10 +35,12 @@
                 for (let i = 0; i < 100; i++)
                     for (let j = 0; j < 100; j++)
                         board.set(i, j, Math.random() * 255);
-                var randGen = new RandomGenerator([0, 1, 2], [2, 1, 1]);
+                var randGen = new RandomGenerator([0, 1, 2], [10, 1, 1]);
+                var terraOperator = new Operator(new Terrain8AdjacencyMapper(), 
+                    new Terrain8Chooser(1, 0, 0, 0, 2, 2, 1));
                 var terraRender = new TerrainRenderer();
                 randGen.generate(board);
-                
+                terraOperator.apply(board);
                 plane = new TilePlane(board, terraRender, 50, document.getElementById("canvas"));
                 plane.render();
             }
