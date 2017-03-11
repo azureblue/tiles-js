@@ -41,7 +41,7 @@
                 terraGrow.apply(board, 5);
                 terraOp.apply(board);
                 new Operator(new Terrain8AdjacencyMapper(), new Terrain8Chooser(1, 1, 1, 10, 10, 10, 50)).apply(board);
-                plane = new TilePlane(board, terraRender, 10, document.getElementById("canvas"));
+                plane = new TilePlane(board, terraRender, 20, document.getElementById("canvas"));
                 plane.render();
             }
         </script>
