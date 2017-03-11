@@ -44,6 +44,13 @@ function Rect(x, y, width, height) {
     this.height = height;
 }
 
+Rect.prototype.inside = function(x, y) {
+    return (x >= this.x
+            && x < this.x + this.width
+            && y >= this.y
+            && y < this.y + this.height);
+};
+
 Rect.prototype.intersects = function (rect) {
     if (rect.x + rect.width > this.x
             && rect.x < this.x + this.width

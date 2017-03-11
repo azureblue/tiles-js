@@ -31,7 +31,7 @@
                     plane.render();
                 }
                 window.addEventListener("resize", resizeCallback);
-                var board = new Board(100, 100);
+                var board = new Board(50, 50);
                 var randGen = new RandomTerrainGenerator([0, 1, 2], [200, 1, 1]);
                 var adjMap = new Terrain8AdjacencyMapper();
                 var terraOp = new Operator(adjMap, new Terrain8Chooser(0, 0, 0, 0, 2, 2, 1));
@@ -43,12 +43,13 @@
                 plane = new TilePlane(board, terraRender, 10, document.getElementById("canvas"));
                 randGen.generate(board);
                 terraOp.apply(board);
-                terraGrow.apply(board, 5);
-                plane.render();
-                terraSmoother.apply(board, 4);
-                plane.render();
+                terraGrow.apply(board, 8);
+                //plane.render();
+                terraSmoother.apply(board, 7);
+                //plane.render();
                 forestSeeder.apply(board);
                 forestGrower.apply(board, 5);
+//                plane.render();
                 plane.render();
             }
         </script>

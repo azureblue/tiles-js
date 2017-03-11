@@ -44,7 +44,9 @@ function Terrain8AdjacencyMapper() {
                     continue;
                 if (!board.checkRange(x + i, y + j))
                     continue;
-                resAr[board.get(x + i, y + j).getType()]++;
+                let tile = board.get(x + i, y + j);
+                if (tile !== undefined)
+                resAr[tile.getType()]++;
             }
         return new Terrain8Adjacency(resAr);
     };

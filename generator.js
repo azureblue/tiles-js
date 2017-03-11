@@ -20,11 +20,16 @@ function RandomTerrainGenerator(values, weights) {
 function Operator(adjacencyMapper, chooser) {
     this.apply = (board, times = 1) => {
         var tempBoard = new Board(board.getWidth(), board.getHeight());
+        var srcBoard = board;
         for (let i = 0; i < times; i++) {
-            board.iteratePositions((x, y, value) =>
-                tempBoard.set(x, y, chooser.choose(board.get(x, y), adjacencyMapper.get(board, x, y)))
+            srcBoard.iteratePositions((x, y, value) =>
+                tempBoard.set(x, y, chooser.choose(value, adjacencyMapper.get(srcBoard, x, y)))
             );
-            board.array = tempBoard.array.slice();
+            var temp = tempBoard;
+            tempBoard = srcBoard;
+            srcBoard = temp;
         }
+        if (srcBoard !== board)
+            board.setAll(srcBoard);
     };
 }
