@@ -1,3 +1,7 @@
+function randInt(range) {
+    return Math.floor(Math.random() * range);
+}
+
 function Color(r, g, b) {
     this.r = r;
     this.g = g;

@@ -23,7 +23,7 @@ function Terrain8AdjacencyMapper() {
         var resAr = [0, 0, 0];
         for (let i = -1; i < 2; i++)
             for (let j = -1; j < 2; j++) {
-                if (i === j) 
+                if (i === 0 && j === 0) 
                     continue;
                 if (!board.checkRange(x + i, y + j))
                     continue;
