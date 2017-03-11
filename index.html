@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>TODO: add title</title>
+        <title>tiles-js</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
@@ -16,13 +16,13 @@
             function getContext() {
                 return document.getElementById("canvas").getContext("2d");
             }
-            
+
             function updateCanvasSize() {
                 var canvas = document.getElementById("canvas");
                 canvas.width = canvas.clientWidth;
                 canvas.height = canvas.clientHeight;
             }
-            
+
             function start() {
                 updateCanvasSize();
                 var plane;
@@ -32,16 +32,16 @@
                 }
                 window.addEventListener("resize", resizeCallback);
                 var board = new Board(100, 100);
-                for (let i = 0; i < 100; i++)
-                    for (let j = 0; j < 100; j++)
-                        board.set(i, j, Math.random() * 255);
-                var randGen = new RandomGenerator([0, 1, 2], [10, 1, 1]);
-                var terraOperator = new Operator(new Terrain8AdjacencyMapper(), 
-                    new Terrain8Chooser(1, 0, 0, 0, 2, 2, 1));
+                var randGen = new RandomGenerator([0, 1, 2], [200, 1, 1]);
+                var terraOp = new Operator(new Terrain8AdjacencyMapper(), new Terrain8Chooser(0, 0, 0, 0, 2, 2, 1));
+                var terraGrow = new Operator(new Terrain8AdjacencyMapper(), new Terrain8LandGrow(2));
                 var terraRender = new TerrainRenderer();
                 randGen.generate(board);
-                terraOperator.apply(board);
-                plane = new TilePlane(board, terraRender, 50, document.getElementById("canvas"));
+                terraOp.apply(board);
+                terraGrow.apply(board, 5);
+                terraOp.apply(board);
+                new Operator(new Terrain8AdjacencyMapper(), new Terrain8Chooser(1, 1, 1, 10, 10, 10, 50)).apply(board);
+                plane = new TilePlane(board, terraRender, 10, document.getElementById("canvas"));
                 plane.render();
             }
         </script>

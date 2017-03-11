@@ -17,11 +17,13 @@ function RandomGenerator(values, weights) {
 }
 
 function Operator(adjacencyMapper, chooser) {
-    this.apply = (board) => {
+    this.apply = (board, times = 1) => {
         var tempBoard = new Board(board.getWidth(), board.getHeight());
-        board.iteratePositions((x, y) => {
-            tempBoard.set(x, y, chooser.choose(board.get(x, y), adjacencyMapper.get(board, x, y)));
-        });
-        board.array.set(tempBoard.array);
+        for (let i = 0; i < times; i++) {
+            board.iteratePositions((x, y) => {
+                tempBoard.set(x, y, chooser.choose(board.get(x, y), adjacencyMapper.get(board, x, y)));
+            });
+            board.array.set(tempBoard.array);
+    }
     };
 }

@@ -37,8 +37,6 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
         var screenPos = screenFromTile(tilePos);
         let tile = tileSource.getTile(tilePos.x, tilePos.y);
         ctx.translate(screenPos.x, screenPos.y);
-        if (selected && selected.same_position(tilePos))
-            tile = Math.min(tile + 100, 255);
         tileRenderer.render(ctx, tile, tileSize);
         ctx.translate(-screenPos.x, -screenPos.y);
     }
@@ -84,9 +82,16 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
     }
     
     function handle_mouse_wheel(event) {
+        let oldTileSize = tileSize;
         tileSize += (((event.wheelDelta ? event.wheelDelta : -event.detail) > 0) ? 10 : -10);
         if (tileSize < 10)
             tileSize = 10;
+        var cw = canvas.clientWidth;
+        var ch = canvas.clientHeight;
+        let xo = offset.x + cw / 2;
+        let yo = offset.y + ch / 2;
+        offset.x += Math.round(xo * tileSize / oldTileSize - xo);
+        offset.y += Math.round(yo * tileSize / oldTileSize - yo);
         render();
     }
 

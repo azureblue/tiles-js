@@ -44,5 +44,21 @@ function Terrain8Chooser(waterInitProb, dirtInitProb, grassInitProb, waterMulti,
             grassInitProb + adj.grasses * grassMulti];
         probs[currentTile] += currentMulti;
         return weightedProb(terrAr, probs);
-    }
+    };
+}
+
+function Terrain8LandGrow(currentMulti) {
+    var terrAr = [0, 1, 2];
+    this.choose = (currentTile, adj) => {
+        if (currentTile !== WATER)
+            return currentTile;
+        
+        var lands = adj.dirts + adj.grasses;
+        if (lands === 0)
+            return WATER;
+        
+        var probs = [currentMulti, lands + adj.dirts * 2, lands + adj.grasses * 2];
+        probs[currentTile] += currentMulti;
+        return weightedProb(terrAr, probs);
+    };
 }
