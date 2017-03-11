@@ -29,8 +29,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
         var tileOffset = new Vec();
         for (tileOffset.x = 0; tileOffset.x < width_in_chunks; tileOffset.x++)
             for (tileOffset.y = 0; tileOffset.y < height_in_chunks; tileOffset.y++)
-                renderTile(firstTile.copy().move(tileOffset));
-            
+                renderTile(firstTile.copy().move(tileOffset));            
     }
     
     function renderTile(tilePos) {

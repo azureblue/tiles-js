@@ -28,6 +28,6 @@ function ColorRandomizer(delta) {
         ca[0] = col.r + randInt(delta * 2) - delta;
         ca[1] = col.g + randInt(delta * 2) - delta;
         ca[2] = col.b + randInt(delta * 2) - delta;
-        return new Color(...ca);
+        return new Color(ca[0], ca[1], ca[2]);
     };
 }
