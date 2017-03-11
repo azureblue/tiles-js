@@ -38,8 +38,8 @@ Vec.from_event = function (event) {
 };
 
 function Rect(x, y, width, height) {
-    this.x = x === undefined ? 0 : x;
-    this.y = y === undefined ? 0 : y;
+    this.x = x;
+    this.y = y;
     this.width = width;
     this.height = height;
 }

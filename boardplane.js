@@ -34,15 +34,14 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
     }
     
     function renderTile(tilePos) {
-        var screenPos = screenFromTile(tilePos);
         let tile = tileSource.getTile(tilePos.x, tilePos.y);
-        ctx.translate(screenPos.x, screenPos.y);
-        tileRenderer.render(ctx, tile, tileSize);
-        ctx.translate(-screenPos.x, -screenPos.y);
+        tileRenderer.render(ctx, screenRect(tilePos), tile, tilePos);
     }
     
     var tileFromScreen = (screenPos) => new Vec(tileXFromScreen(screenPos.x), tileYFromScreen(screenPos.y));
-    var screenFromTile = (tilePos) => new Vec(tilePos.x * tileSize - offset.x, tilePos.y * tileSize - offset.y);
+    var screenRect = (tilePos) => 
+        new Rect(tilePos.x * tileSize - offset.x, tilePos.y * tileSize - offset.y, tileSize, tileSize);
+        
     var tileXFromScreen = (screenX) => Math.floor((screenX + offset.x) / tileSize);
     var tileYFromScreen = (screenY) => Math.floor((screenY + offset.y) / tileSize);
 

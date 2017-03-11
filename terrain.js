@@ -3,12 +3,23 @@ const DIRT = 1;
 const GRASS = 2;
 
 const TERRAIN_COLORS = [new Color(50, 80, 235), new Color(130, 110, 80), new Color(30, 170, 20)];
+const TERRAIN_COLOR_DELTA = 5;
+
+function TerrainTile(type, color) {    
+    this.getType = () => type;
+    this.getColor = () => color;
+}
+
+function TerrainTileFactory(colorDelta = TERRAIN_COLOR_DELTA) {
+    var colorRand = new ColorRandomizer(colorDelta);
+    this.createTile = (type) => new TerrainTile(type, colorRand.randomize(TERRAIN_COLORS[type]));
+}
 
 function TerrainRenderer() {
-    this.render = (ctx, tile, tileSize) => {
-        var color = tile !== undefined ? TERRAIN_COLORS[tile] : new Color(50, 50, 50);
+    this.render = (ctx, rect, tile, tilePos) => {
+        var color = tile !== undefined ? tile.getColor() : new Color(50, 50, 50);
         ctx.fillStyle = color.toFillStyle();
-        ctx.fillRect(0, 0, tileSize, tileSize);
+        ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
     };
 }
 
@@ -30,7 +41,7 @@ function Terrain8AdjacencyMapper() {
                 let tile = board.get(x + i, y + j);
                 if (tile === undefined || tile < 0 || tile > 2)
                     throw "invalid tile";
-                resAr[tile]++;
+                resAr[tile.getType()]++;
             }
         return new Terrain8Adjacency(...resAr);
     };
@@ -38,27 +49,29 @@ function Terrain8AdjacencyMapper() {
 
 function Terrain8Chooser(waterInitProb, dirtInitProb, grassInitProb, waterMulti, dirtMulti, grassMulti, currentMulti) {
     var terrAr = [0, 1, 2];
+    var tileFactory = new TerrainTileFactory();
     this.choose = (currentTile, adj) => {
         var probs = [waterInitProb + adj.waters * waterMulti, 
             dirtInitProb + adj.dirts * dirtMulti, 
             grassInitProb + adj.grasses * grassMulti];
-        probs[currentTile] += currentMulti;
-        return weightedProb(terrAr, probs);
+        probs[currentTile.getType()] += currentMulti;
+        return tileFactory.createTile(weightedProb(terrAr, probs));
     };
 }
 
 function Terrain8LandGrow(currentMulti) {
+    var tileFactory = new TerrainTileFactory();
     var terrAr = [0, 1, 2];
     this.choose = (currentTile, adj) => {
-        if (currentTile !== WATER)
+        if (currentTile.getType() !== WATER)
             return currentTile;
         
         var lands = adj.dirts + adj.grasses;
         if (lands === 0)
-            return WATER;
+            return tileFactory.createTile(WATER);
         
         var probs = [currentMulti, lands + adj.dirts * 2, lands + adj.grasses * 2];
-        probs[currentTile] += currentMulti;
-        return weightedProb(terrAr, probs);
+        probs[currentTile.getType()] += currentMulti;
+        return tileFactory.createTile(weightedProb(terrAr, probs));
     };
 }

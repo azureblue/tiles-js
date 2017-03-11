@@ -8,10 +8,11 @@ function weightedProb(values, weights) {
     return values[idx];
 }
 
-function RandomGenerator(values, weights) {
+function RandomTerrainGenerator(values, weights) {
+    var tileFactory = new TerrainTileFactory();
     this.generate = (board) => {
         board.iteratePositions((x, y) => {
-            board.set(x, y, weightedProb(values, weights));
+            board.set(x, y, tileFactory.createTile(weightedProb(values, weights)));
         });
     };
 }
@@ -23,7 +24,7 @@ function Operator(adjacencyMapper, chooser) {
             board.iteratePositions((x, y) => {
                 tempBoard.set(x, y, chooser.choose(board.get(x, y), adjacencyMapper.get(board, x, y)));
             });
-            board.array.set(tempBoard.array);
+            board.array = tempBoard.array.slice();
     }
     };
 }

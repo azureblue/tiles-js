@@ -6,6 +6,13 @@ function Color(r, g, b) {
     this.r = r;
     this.g = g;
     this.b = b;
+    
+    this.toInt = () => (this.r << 16) | (this.g << 8) | this.b;
+    this.fromInt = (colorInt) => {
+        this.r = (colorInt >> 16) & 255;
+        this.g = (colorInt >> 8) & 255;
+        this.b = (colorInt >> 0) & 255;
+    };
     this.toFillStyle = () => "rgb(" + r + ", " + g + ", " + b + ")";    
 }
 
