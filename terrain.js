@@ -37,7 +37,7 @@ function TerrainTileFactory(colorDelta = TERRAIN_COLOR_DELTA) {
 
 function TerrainRenderer() {
     var nullColor = new Color(50, 50, 50);
-    this.render = (ctx, rect, tile, tilePos) => {
+    this.render = (ctx, rect, tile) => {
         var color = tile !== undefined ? tile.color : nullColor;
         ctx.fillStyle = color.toFillStyle();
         ctx.fillRect(rect.x, rect.y, rect.width, rect.height);

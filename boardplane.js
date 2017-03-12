@@ -14,6 +14,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
     canvas.addEventListener("wheel", handle_mouse_wheel);
 
     this.render = render;
+    this.renderTile = renderTile;
 
     function render() {
         var cw = canvas.clientWidth;
@@ -29,17 +30,17 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
         var tileOffset = new Vec();
         for (tileOffset.x = 0; tileOffset.x < width_in_chunks; tileOffset.x++)
             for (tileOffset.y = 0; tileOffset.y < height_in_chunks; tileOffset.y++)
-                renderTile(firstTile.copy().move(tileOffset));            
+                renderTile(firstTile.x + tileOffset.x, firstTile.y + tileOffset.y);            
     }
     
-    function renderTile(tilePos) {
-        let tile = tileSource.getTile(tilePos.x, tilePos.y);
-        tileRenderer.render(ctx, screenRect(tilePos), tile, tilePos);
+    function renderTile(x, y) {
+        let tile = tileSource.getTile(x, y);
+        tileRenderer.render(ctx, screenRect(x, y), tile);
     }
     
     var tileFromScreen = (screenPos) => new Vec(tileXFromScreen(screenPos.x), tileYFromScreen(screenPos.y));
-    var screenRect = (tilePos) => 
-        new Rect(tilePos.x * tileSize - offset.x, tilePos.y * tileSize - offset.y, tileSize, tileSize);
+    var screenRect = (x, y) => 
+        new Rect(x * tileSize - offset.x, y * tileSize - offset.y, tileSize, tileSize);
         
     var tileXFromScreen = (screenX) => Math.floor((screenX + offset.x) / tileSize);
     var tileYFromScreen = (screenY) => Math.floor((screenY + offset.y) / tileSize);
@@ -81,7 +82,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
     
     function handle_mouse_wheel(event) {
         let oldTileSize = tileSize;
-        tileSize += (((event.wheelDelta ? event.wheelDelta : -event.detail) > 0) ? 10 : -10);
+        tileSize += ((event.deltaY < 0) ? 10 : -10);
         if (tileSize < 10)
             tileSize = 10;
         var cw = canvas.clientWidth;

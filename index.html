@@ -31,6 +31,7 @@
                     plane.render();
                 }
                 window.addEventListener("resize", resizeCallback);
+                var tf = new TerrainTileFactory();
                 var board = new Board(200, 200);
                 var randGen = new RandomTerrainGenerator([0, 1, 2], [200, 1, 1]);
                 var adjMap = new Terrain8AdjMapper();
@@ -51,6 +52,15 @@
                 forestGrower.apply(board, 5);
 //                plane.render();
                 plane.render();
+                window.setInterval(() => {
+                    board.iteratePositions((x, y, ter) => {
+                        if (ter.type === WATER && Math.random() < 0.5) {
+                            
+                            tf.resetTile(ter, WATER);
+                            plane.renderTile(x, y);
+                        }
+                    });
+                }, 200);
             }
         </script>
     </head>
