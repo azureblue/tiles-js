@@ -31,9 +31,9 @@
                     plane.render();
                 }
                 window.addEventListener("resize", resizeCallback);
-                var board = new Board(50, 50);
+                var board = new Board(200, 200);
                 var randGen = new RandomTerrainGenerator([0, 1, 2], [200, 1, 1]);
-                var adjMap = new Terrain8AdjacencyMapper();
+                var adjMap = new Terrain8AdjMapper();
                 var terraOp = new Operator(adjMap, new Terrain8Chooser(0, 0, 0, 0, 2, 2, 1));
                 var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2));
                 var terraSmoother = new Operator(adjMap, new Terrain8Smoother());

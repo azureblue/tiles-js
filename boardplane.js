@@ -11,7 +11,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
     canvas.addEventListener("mousedown", handle_mouse_down);
     canvas.addEventListener("mouseup", handle_mouse_drag_stop);
     canvas.addEventListener("mouseout", handle_mouse_drag_stop);
-    canvas.addEventListener("mousewheel", handle_mouse_wheel);
+    canvas.addEventListener("wheel", handle_mouse_wheel);
 
     this.render = render;
 
