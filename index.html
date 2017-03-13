@@ -23,45 +23,56 @@
                 canvas.height = canvas.clientHeight;
             }
 
-            function start() {
-                updateCanvasSize();
-                var plane;
-                function resizeCallback() {
-                    updateCanvasSize();
-                    plane.render();
-                }
-                window.addEventListener("resize", resizeCallback);
+            function startWaterAnim(board, plane) {
                 var tf = new TerrainTileFactory();
-                var board = new Board(200, 200);
-                var randGen = new RandomTerrainGenerator([0, 1, 2], [200, 1, 1]);
-                var adjMap = new Terrain8AdjMapper();
-                var terraOp = new Operator(adjMap, new Terrain8Chooser(0, 0, 0, 0, 2, 2, 1));
-                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2));
-                var terraSmoother = new Operator(adjMap, new Terrain8Smoother());
-                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder());
-                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow());
-                var terraRender = new TerrainRenderer();
-                plane = new TilePlane(board, terraRender, 10, document.getElementById("canvas"));
-                randGen.generate(board);
-                terraOp.apply(board);
-                terraGrow.apply(board, 8);
-                //plane.render();
-                terraSmoother.apply(board, 7);
-                //plane.render();
-                forestSeeder.apply(board);
-                forestGrower.apply(board, 5);
-//                plane.render();
-                plane.render();
                 window.setInterval(() => {
                     board.iteratePositions((x, y, ter) => {
-                        if (ter.type === WATER && Math.random() < 0.5) {
-                            
+                        if (ter.type === WATER && Math.random() < 0.2) {
                             tf.resetTile(ter, WATER);
                             plane.renderTile(x, y);
                         }
                     });
                 }, 200);
             }
+
+            function start() {
+                updateCanvasSize();
+                var plane;
+                
+                function resizeCallback() {
+                    updateCanvasSize();
+                    plane.render();
+                }
+                window.addEventListener("resize", resizeCallback);
+
+                var board = new Board(200, 200);
+                var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
+                var adjMap = new Terrain8AdjMapper();
+                var terraOp = new Operator(adjMap, new Terrain8Chooser(0, 0, 0, 0, 2, 2, 1));
+                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2));
+                var terraSmoother = new Operator(adjMap, new Terrain8Smoother());
+                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5));
+                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother());
+                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder());
+                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow());
+                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow());
+                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed());
+                var terraRender = new TerrainRenderer();
+                plane = new TilePlane(board, terraRender, 10, document.getElementById("canvas"));
+                randGen.generate(board);
+                plane.render();
+                terraGrow.apply(board, 8);
+                terraSmoother.apply(board, 4);
+                grassSeed.apply(board, 1);
+                grassGrow.apply(board, 5);
+                terraSmootherPr.apply(board, 8);
+                terraMaxSmoother.apply(board);
+                forestSeeder.apply(board);
+                forestGrower.apply(board, 6);
+                plane.render();
+                startWaterAnim(board, plane);
+            }
+
         </script>
     </head>
     <body onload="start();">

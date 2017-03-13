@@ -30,18 +30,18 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
         var tileOffset = new Vec();
         for (tileOffset.x = 0; tileOffset.x < width_in_chunks; tileOffset.x++)
             for (tileOffset.y = 0; tileOffset.y < height_in_chunks; tileOffset.y++)
-                renderTile(firstTile.x + tileOffset.x, firstTile.y + tileOffset.y);            
+                renderTile(firstTile.x + tileOffset.x, firstTile.y + tileOffset.y);
     }
-    
+
     function renderTile(x, y) {
         let tile = tileSource.getTile(x, y);
         tileRenderer.render(ctx, screenRect(x, y), tile);
     }
-    
+
     var tileFromScreen = (screenPos) => new Vec(tileXFromScreen(screenPos.x), tileYFromScreen(screenPos.y));
-    var screenRect = (x, y) => 
+    var screenRect = (x, y) =>
         new Rect(x * tileSize - offset.x, y * tileSize - offset.y, tileSize, tileSize);
-        
+
     var tileXFromScreen = (screenX) => Math.floor((screenX + offset.x) / tileSize);
     var tileYFromScreen = (screenY) => Math.floor((screenY + offset.y) / tileSize);
 
@@ -79,7 +79,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
         mouse_move_point = temp_mouse_move_point;
         render();
     }
-    
+
     function handle_mouse_wheel(event) {
         let oldTileSize = tileSize;
         tileSize += ((event.deltaY < 0) ? 10 : -10);
