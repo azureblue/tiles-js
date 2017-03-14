@@ -104,6 +104,15 @@ function Terrain8AdjMapper() {
         });
     };
 }
+function Terrain8AdjMapper() {
+    this.iterate = (board, adjCallback) => {
+        var lazyAdj = new Terrain8LazyAdjacency(board);
+        board.iteratePositions((x, y, tile) => {
+            lazyAdj.reset(tile, x, y);
+            adjCallback(x, y, lazyAdj);            
+        });
+    };
+}
 
 function Terrain8Chooser(waterInitProb, dirtInitProb, grassInitProb, waterMulti, dirtMulti, grassMulti, currentMulti) {
     var terrAr = [0, 1, 2];

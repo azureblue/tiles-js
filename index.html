@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
             * {border: 0px; width: 100%; height: 100%; margin: 0px;}
+            canvas {position: absolute; background: transparent;}
         </style>
         <script src="board.js"></script>
         <script src="geom.js"></script>
@@ -13,12 +14,7 @@
         <script src="generator.js"></script>
         <script src="terrain.js"></script>
         <script>
-            function getContext() {
-                return document.getElementById("canvas").getContext("2d");
-            }
-
-            function updateCanvasSize() {
-                var canvas = document.getElementById("canvas");
+            function updateCanvasSize(canvas) {
                 canvas.width = canvas.clientWidth;
                 canvas.height = canvas.clientHeight;
             }
@@ -35,30 +31,36 @@
             }
 
             function start() {
-                updateCanvasSize();
-                var plane;
+                var tileCanvas = document.getElementById("canvas");
+                var overlayCanvas = document.getElementById("canvasOverlay");
+                updateCanvasSize(tileCanvas);
+                updateCanvasSize(overlayCanvas);
                 
                 function resizeCallback() {
-                    updateCanvasSize();
+                    updateCanvasSize(tileCanvas);
+                    updateCanvasSize(overlayCanvas);
                     plane.render();
                 }
+                
                 window.addEventListener("resize", resizeCallback);
 
                 var board = new Board(200, 200);
+                var terraRender = new TerrainRenderer();
+                var plane = new TilePlane(board, terraRender, 20, tileCanvas, overlayCanvas);
+                
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
                 var adjMap = new Terrain8AdjMapper();
-                var ti = tileUtils.newTile;
-                var terraOp = new Operator(adjMap, new Terrain8Chooser(0, 0, 0, 0, 2, 2, 1), ti);
-                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2), ti);
-                var terraSmoother = new Operator(adjMap, new Terrain8Smoother(), ti);
-                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5), ti);
-                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother(), ti);
-                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder(), ti);
-                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow(), ti);
-                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow(), ti);
-                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed(), ti);
-                var terraRender = new TerrainRenderer();
-                plane = new TilePlane(board, terraRender, 10, document.getElementById("canvas"));
+                var tileInit = tileUtils.newTile;
+                var terraOp = new Operator(adjMap, new Terrain8Chooser(0, 0, 0, 0, 2, 2, 1), tileInit);
+                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2), tileInit);
+                var terraSmoother = new Operator(adjMap, new Terrain8Smoother(), tileInit);
+                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5), tileInit);
+                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother(), tileInit);
+                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder(), tileInit);
+                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow(), tileInit);
+                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow(), tileInit);
+                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed(), tileInit);
+                
                 randGen.generate(board);
                 plane.render();
                 terraGrow.apply(board, 8);
@@ -77,5 +79,6 @@
     </head>
     <body onload="start();">
         <canvas id="canvas"></canvas>
+        <canvas id="canvasOverlay"></canvas>
     </body>
 </html>

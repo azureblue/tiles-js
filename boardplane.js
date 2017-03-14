@@ -1,17 +1,17 @@
 /* global Vec */
 
-function TilePlane(tileSource, tileRenderer, tileSize, can) {
-    var canvas = can ? can : document.createElement("canvas");
+function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
     var ctx = canvas.getContext("2d");
+    var octx = overlayCanvas.getContext("2d");
     var mouse_down_point, mouse_move_point, dragging = false;
     var selected = undefined;
     var offset = new Vec(0, 0);
 
-    canvas.addEventListener("mousemove", handle_mouse_move);
-    canvas.addEventListener("mousedown", handle_mouse_down);
-    canvas.addEventListener("mouseup", handle_mouse_drag_stop);
-    canvas.addEventListener("mouseout", handle_mouse_drag_stop);
-    canvas.addEventListener("wheel", handle_mouse_wheel);
+    overlayCanvas.addEventListener("mousemove", handle_mouse_move);
+    overlayCanvas.addEventListener("mousedown", handle_mouse_down);
+    overlayCanvas.addEventListener("mouseup", handle_mouse_drag_stop);
+    overlayCanvas.addEventListener("mouseout", handle_mouse_drag_stop);
+    overlayCanvas.addEventListener("wheel", handle_mouse_wheel);
 
     this.render = render;
     this.renderTile = renderTile;
@@ -26,16 +26,36 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
 
         var width_in_chunks = Math.floor((xalign + cw + tileSize - 1) / tileSize);
         var height_in_chunks = Math.floor((yalign + ch + tileSize - 1) / tileSize);
-        var firstTile = tileFromScreen(new Vec(-xalign, -yalign));
+        var firstTilePosOnScreen = new Vec(-xalign, -yalign);
+        var firstTile = tileFromScreen(firstTilePosOnScreen);
         var tileOffset = new Vec();
         for (tileOffset.x = 0; tileOffset.x < width_in_chunks; tileOffset.x++)
             for (tileOffset.y = 0; tileOffset.y < height_in_chunks; tileOffset.y++)
                 renderTile(firstTile.x + tileOffset.x, firstTile.y + tileOffset.y);
+        
+        var gridLineWidth = tileSize / 150;
+        octx.clearRect(0, 0, cw, ch);
+        octx.lineWidth = 1;
+        octx.strokeStyle = "rgba(50, 50, 50, " + gridLineWidth + ")";
+        for (var i = 0; i < width_in_chunks; i++) {
+            octx.beginPath();
+            octx.moveTo(i * tileSize + firstTilePosOnScreen.x, firstTilePosOnScreen.y);
+            octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
+            octx.stroke();
+        }
+        
+        for (var i = 0; i < height_in_chunks; i++) {
+            octx.beginPath();
+            octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
+            octx.lineTo(cw + tileSize, i * tileSize + firstTilePosOnScreen.y);
+            octx.stroke();
+        }
     }
 
     function renderTile(x, y) {
-        let tile = tileSource.getTile(x, y);
-        tileRenderer.render(ctx, screenRect(x, y), tile);
+        var tile = tileSource.getTile(x, y);
+        var rect = screenRect(x, y);
+        tileRenderer.render(ctx, rect, tile);        
     }
 
     var tileFromScreen = (screenPos) => new Vec(tileXFromScreen(screenPos.x), tileYFromScreen(screenPos.y));
@@ -82,7 +102,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, can) {
 
     function handle_mouse_wheel(event) {
         let oldTileSize = tileSize;
-        tileSize += ((event.deltaY < 0) ? 10 : -10);
+        tileSize *= ((event.deltaY < 0) ? 2 : 0.5 );
         if (tileSize < 10)
             tileSize = 10;
         var cw = canvas.clientWidth;
