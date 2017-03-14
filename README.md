@@ -2,7 +2,7 @@
 
 Another "Just playing with JavaScript" project.
 
-Tile maps generation and rendering (with dragging and zooming). 
+Tile maps generation using random cellular automata. [+ rendering (with dragging and zooming)]
 
 [http://azureblue.github.io/tiles-js]. 
 
