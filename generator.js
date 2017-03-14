@@ -10,19 +10,10 @@ function weightedProb(values, weights) {
     return values[idx];
 }
 
-function RandomTerrainGenerator(values, weights) {
-    var tileFactory = new TerrainTileFactory();
-    this.generate = (board) => {
-        board.iteratePositions((x, y) => {
-            board.set(x, y, tileFactory.createTile(weightedProb(values, weights)));
-        });
-    };
-}
-
-function Operator(adjacencyMapper, chooser) {
+function Operator(adjacencyMapper, chooser, tileInitializer) {
     this.apply = (board, times = 1) => {
         var tempBoard = new Board(board.getWidth(), board.getHeight());
-        tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
+        tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, tileInitializer()));
         var srcBoard = board;
         for (var i = 0; i < times; i++) {
             adjacencyMapper.iterate(srcBoard, (x, y, adj) => {

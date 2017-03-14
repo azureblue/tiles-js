@@ -24,11 +24,10 @@
             }
 
             function startWaterAnim(board, plane) {
-                var tf = new TerrainTileFactory();
                 window.setInterval(() => {
                     board.iteratePositions((x, y, ter) => {
                         if (ter.type === WATER && Math.random() < 0.2) {
-                            tf.resetTile(ter, WATER);
+                            tileUtils.resetTile(ter, WATER);
                             plane.renderTile(x, y);
                         }
                     });
@@ -48,15 +47,16 @@
                 var board = new Board(200, 200);
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
                 var adjMap = new Terrain8AdjMapper();
-                var terraOp = new Operator(adjMap, new Terrain8Chooser(0, 0, 0, 0, 2, 2, 1));
-                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2));
-                var terraSmoother = new Operator(adjMap, new Terrain8Smoother());
-                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5));
-                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother());
-                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder());
-                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow());
-                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow());
-                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed());
+                var ti = tileUtils.newTile;
+                var terraOp = new Operator(adjMap, new Terrain8Chooser(0, 0, 0, 0, 2, 2, 1), ti);
+                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2), ti);
+                var terraSmoother = new Operator(adjMap, new Terrain8Smoother(), ti);
+                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5), ti);
+                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother(), ti);
+                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder(), ti);
+                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow(), ti);
+                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow(), ti);
+                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed(), ti);
                 var terraRender = new TerrainRenderer();
                 plane = new TilePlane(board, terraRender, 10, document.getElementById("canvas"));
                 randGen.generate(board);
