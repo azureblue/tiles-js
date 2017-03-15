@@ -4,9 +4,13 @@ function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
     var ctx = canvas.getContext("2d");
     var octx = overlayCanvas.getContext("2d");
     var mouse_down_point, mouse_move_point, dragging = false;
+    var touches = [];
     var selected = undefined;
     var offset = new Vec(0, 0);
 
+    overlayCanvas.addEventListener("touchstart", handleTouchstart);
+    overlayCanvas.addEventListener("touchend", handleTouchend);
+    overlayCanvas.addEventListener("touchmove", handleTouchmove);
     overlayCanvas.addEventListener("mousemove", handle_mouse_move);
     overlayCanvas.addEventListener("mousedown", handle_mouse_down);
     overlayCanvas.addEventListener("mouseup", handle_mouse_drag_stop);
@@ -32,7 +36,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
         for (tileOffset.x = 0; tileOffset.x < width_in_chunks; tileOffset.x++)
             for (tileOffset.y = 0; tileOffset.y < height_in_chunks; tileOffset.y++)
                 renderTile(firstTile.x + tileOffset.x, firstTile.y + tileOffset.y);
-        
+
         var gridLineWidth = tileSize / 150;
         octx.clearRect(0, 0, cw, ch);
         octx.lineWidth = 1;
@@ -43,7 +47,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
             octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
             octx.stroke();
         }
-        
+
         for (var i = 0; i < height_in_chunks; i++) {
             octx.beginPath();
             octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
@@ -55,7 +59,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
     function renderTile(x, y) {
         var tile = tileSource.getTile(x, y);
         var rect = screenRect(x, y);
-        tileRenderer.render(ctx, rect, tile);        
+        tileRenderer.render(ctx, rect, tile);
     }
 
     var tileFromScreen = (screenPos) => new Vec(tileXFromScreen(screenPos.x), tileYFromScreen(screenPos.y));
@@ -64,6 +68,52 @@ function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
 
     var tileXFromScreen = (screenX) => Math.floor((screenX + offset.x) / tileSize);
     var tileYFromScreen = (screenY) => Math.floor((screenY + offset.y) / tileSize);
+
+    function forEachTouch(touchList, callback) {
+        for (var i = 0; i < touchList.length; i++)
+            callback(touchList.item(i));
+    }
+    
+    function touchPos(te) {
+        return new Vec(te.clientX, te.clientY);
+    }
+
+    function handleTouchstart(evt) {
+        forEachTouch(evt.changedTouches, te =>
+            touches.push({
+                lastPos: new Vec(te.clientX, te.clientY),
+                event: te
+            })
+        );
+    }
+
+    function handleTouchmove(evt) {
+        if (touches.length === 1) {
+            var currentPos = new Vec(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
+            var dxy = currentPos.vector_to(touches[0].lastPos);
+            touches[0].lastPos = currentPos;
+            offset.move(dxy);
+            render();
+        } else if (touches.length === 2) {
+            //TODO: add pinch/zoom
+//            var startDist = Vec.dist(touches[0].lastPos, touches[1].lastPos);
+//            var currentDist = Vec.dist(touchPos(evt.changedTouches[0]), touchPos(evt.changedTouches[1]));
+//            var distDiff = currentDist - startDist;
+//            distDiff = distDiff * 2 / canvas.clientWidth;
+//            if (Math.abs(distDiff) >= 1) {
+//                touches[0].lastPos = touchPos(evt.changedTouches[0]);
+//                touches[1].lastPos = touchPos(evt.changedTouches[1]);
+//                var tileSizeChange = ((distDiff < 0) ? tileSize : -tileSize / 2);
+//                zoom(tileSizeChange);
+//            }
+        }
+    }
+
+    function handleTouchend(evt) {
+        forEachTouch(evt.changedTouches, te =>
+            touches = touches.filter(tc => tc.event.identifier !== te.identifier)
+        );
+    }
 
     function handle_mouse_down(event) {
         if (event.button === 2) {
@@ -100,9 +150,14 @@ function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
         render();
     }
 
-    function handle_mouse_wheel(event) {
+    function handle_mouse_wheel(event) {        
+        var tileSizeChange = ((event.deltaY < 0) ? tileSize : -tileSize / 2);
+        zoom(tileSizeChange);
+    }
+    
+    function zoom(tileSizeChange) {
         let oldTileSize = tileSize;
-        tileSize *= ((event.deltaY < 0) ? 2 : 0.5 );
+        tileSize += tileSizeChange;
         if (tileSize < 10)
             tileSize = 10;
         var cw = canvas.clientWidth;

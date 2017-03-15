@@ -33,6 +33,13 @@ Vec.prototype.inverse = function () {
     return this;
 };
 
+Vec.dist = function(a, b) {
+    var dx = b.x - a.x;
+    var dy = b.y - a.y;
+    
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
 Vec.from_event = function (event) {
     return new Vec(event.offsetX, event.offsetY);
 };
