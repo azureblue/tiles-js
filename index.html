@@ -45,24 +45,23 @@
                 window.addEventListener("resize", resizeCallback);
 
                 var board = new Board(200, 200);
+                var tempBoard = new Board(200, 200);
+                tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
                 var terraRender = new TerrainRenderer();
                 var plane = new TilePlane(board, terraRender, 20, tileCanvas, overlayCanvas);
                 
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
                 var adjMap = new Terrain8AdjMapper();
-                var tileInit = tileUtils.newTile;
-                var terraOp = new Operator(adjMap, new Terrain8Chooser(0, 0, 0, 0, 2, 2, 1), tileInit);
-                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2), tileInit);
-                var terraSmoother = new Operator(adjMap, new Terrain8Smoother(), tileInit);
-                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5), tileInit);
-                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother(), tileInit);
-                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder(), tileInit);
-                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow(), tileInit);
-                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow(), tileInit);
-                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed(), tileInit);
+                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2), tempBoard);
+                var terraSmoother = new Operator(adjMap, new Terrain8Smoother(), tempBoard);
+                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5), tempBoard);
+                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother(), tempBoard);
+                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder(), tempBoard);
+                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow(), tempBoard);
+                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow(), tempBoard);
+                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed(), tempBoard);
                 
                 randGen.generate(board);
-                plane.render();
                 terraGrow.apply(board, 8);
                 terraSmoother.apply(board, 4);
                 grassSeed.apply(board, 1);
@@ -77,7 +76,7 @@
 
         </script>
     </head>
-    <body onload="start();">
+    <body onload="start()">
         <canvas id="canvas"></canvas>
         <canvas id="canvasOverlay"></canvas>
     </body>

@@ -1,6 +1,6 @@
 function weightedProb(values, weights) {
     let weightSum = weights.reduce((a, b) => a + b);
-    if (weightSum <= 0) 
+    if (weightSum <= 0)
         throw "illegal state: weights sum <= 0";
     let r = Math.random() * weightSum;
     let idx = 0;
@@ -10,20 +10,25 @@ function weightedProb(values, weights) {
     return values[idx];
 }
 
-function Operator(adjacencyMapper, chooser, tileInitializer) {
+function swapBoards(boardA, boardB) {
+    var aArr = boardA.getArray();
+    var bArr = boardB.getArray();
+    for (var i = 0; i < aArr.length; i++) {
+        var t = aArr[i];
+        aArr[i] = bArr[i];
+        bArr[i] = t;
+    }
+}
+
+function Operator(adjacencyMapper, chooser, tempBoard) {
     this.apply = (board, times = 1) => {
-        var tempBoard = new Board(board.getWidth(), board.getHeight());
-        tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, tileInitializer()));
-        var srcBoard = board;
         for (var i = 0; i < times; i++) {
-            adjacencyMapper.iterate(srcBoard, (x, y, adj) => {
-                chooser.updateTile(adj, tempBoard.get(x, y));
-            });
-            var temp = tempBoard;
-            tempBoard = srcBoard;
-            srcBoard = temp;
+            adjacencyMapper.iterate(board, 
+                (x, y, adj) => chooser.updateTile(adj, tempBoard.get(x, y))
+            );
+            [board, tempBoard] = [tempBoard, board];
         }
-        if (srcBoard !== board)
-            board.setAll(srcBoard);
+        if (times % 2 === 1)
+            swapBoards(board, tempBoard);
     };
 }
