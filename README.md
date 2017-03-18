@@ -6,4 +6,6 @@ Tile maps generation using random cellular automata. [+ rendering (with dragging
 
 [http://azureblue.github.io/tiles-js]. 
 
+[http://azureblue.github.io/tiles-js/webgl-rendering] (webgl rendering).
+
 A fairly new web browser version is required.
