@@ -1,13 +1,20 @@
 /* global Vec */
 
-function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
-    var ctx = canvas.getContext("2d");
+function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas, gl) {
+    //var ctx = canvas.getContext("2d");
     var octx = overlayCanvas.getContext("2d");
     var mouse_down_point, mouse_move_point, dragging = false;
     var touches = [];
     var selected = undefined;
     var offset = new Vec(0, 0);
-
+    var cw, ch;
+    var widthInChunks, heightInChunks;
+    var firstTilePosOnScreen;
+    var gridVertices;
+    var gridColors;
+    var gridElements;
+    updatePos();
+    
     overlayCanvas.addEventListener("touchstart", handleTouchstart);
     overlayCanvas.addEventListener("touchend", handleTouchend);
     overlayCanvas.addEventListener("touchmove", handleTouchmove);
@@ -19,36 +26,102 @@ function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
 
     this.render = render;
     this.renderTile = renderTile;
+    
+    function updatePos() {
+        cw = canvas.clientWidth;
+        ch = canvas.clientHeight;
+        
+        widthInChunks = Math.floor((cw + tileSize - 1) / tileSize) + 1;
+        heightInChunks = Math.floor((ch + tileSize - 1) / tileSize) + 1;
+        
+        gridVertices = new Float32Array(widthInChunks * heightInChunks * 8);
+        gridColors = new Float32Array(widthInChunks * heightInChunks * 12);
+        gridElements = new Uint16Array(widthInChunks * heightInChunks * 6);
+        
+        var vertex = 0;
+        var element = 0;
+        var vertexElement = 0;
+        for (var x = 0; x < widthInChunks; x++)
+            for (var y = 0; y < heightInChunks; y++) {
+                gridElements[element++] = vertexElement;
+                gridElements[element++] = vertexElement + 1;                
+                gridElements[element++] = vertexElement + 2;
+                
+                gridElements[element++] = vertexElement + 1;                
+                gridElements[element++] = vertexElement + 2;
+                gridElements[element++] = vertexElement + 3;
+                vertexElement += 4;
+                
+                gridVertices[vertex++] = -1 + (x * tileSize) / cw * 2;
+                gridVertices[vertex++] = 1 - (y * tileSize) / ch * 2;
+                
+                gridVertices[vertex++] = -1 + (x * tileSize + tileSize) / cw * 2;
+                gridVertices[vertex++] = 1 - (y * tileSize) / ch * 2;
+                
+                gridVertices[vertex++] = -1 + (x * tileSize) / cw * 2;
+                gridVertices[vertex++] = 1 - (y * tileSize + tileSize) / ch * 2;
+                
+                gridVertices[vertex++] = -1 + (x * tileSize + tileSize) / cw * 2;
+                gridVertices[vertex++] = 1 - (y * tileSize + tileSize) / ch * 2;                
+            }
+        gl.updateArraysAndElements(gridVertices, gridElements);
+        
+    }
 
     function render() {
-        var cw = canvas.clientWidth;
-        var ch = canvas.clientHeight;
+        cw = canvas.clientWidth;
+        ch = canvas.clientHeight;
         var xalign = offset.x % tileSize;
         var yalign = offset.y % tileSize;
         xalign += xalign >= 0 ? 0 : tileSize;
         yalign += yalign >= 0 ? 0 : tileSize;
-
-        var width_in_chunks = Math.floor((xalign + cw + tileSize - 1) / tileSize);
-        var height_in_chunks = Math.floor((yalign + ch + tileSize - 1) / tileSize);
-        var firstTilePosOnScreen = new Vec(-xalign, -yalign);
+        
+        firstTilePosOnScreen = new Vec(-xalign, -yalign);
+        gl.translate(-xalign / cw * 2, yalign / ch * 2);
+        
+       
         var firstTile = tileFromScreen(firstTilePosOnScreen);
         var tileOffset = new Vec();
-        for (tileOffset.x = 0; tileOffset.x < width_in_chunks; tileOffset.x++)
-            for (tileOffset.y = 0; tileOffset.y < height_in_chunks; tileOffset.y++)
-                renderTile(firstTile.x + tileOffset.x, firstTile.y + tileOffset.y);
+        var vertexColor = 0;
+        for (tileOffset.x = 0; tileOffset.x < widthInChunks; tileOffset.x++)
+            for (tileOffset.y = 0; tileOffset.y < heightInChunks; tileOffset.y++) {
+                
+                var col = renderTile(firstTile.x + tileOffset.x, firstTile.y + tileOffset.y);
+                var r = col.r / 255;
+                var g = col.g / 255;
+                var b = col.b / 255;
+                gridColors[vertexColor++] = r;
+                gridColors[vertexColor++] = g;
+                gridColors[vertexColor++] = b;
+                
+                gridColors[vertexColor++] = r;
+                gridColors[vertexColor++] = g;
+                gridColors[vertexColor++] = b;
+                
+                gridColors[vertexColor++] = r;
+                gridColors[vertexColor++] = g;
+                gridColors[vertexColor++] = b;
+                
+                gridColors[vertexColor++] = r;
+                gridColors[vertexColor++] = g;
+                gridColors[vertexColor++] = b;                
+            }
+        
+        gl.updateColors(gridColors);
+        gl.draw(gridElements.length);
 
         var gridLineWidth = tileSize / 150;
         octx.clearRect(0, 0, cw, ch);
         octx.lineWidth = 1;
         octx.strokeStyle = "rgba(50, 50, 50, " + gridLineWidth + ")";
-        for (var i = 0; i < width_in_chunks; i++) {
+        for (var i = 0; i < widthInChunks; i++) {
             octx.beginPath();
             octx.moveTo(i * tileSize + firstTilePosOnScreen.x, firstTilePosOnScreen.y);
             octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
             octx.stroke();
         }
 
-        for (var i = 0; i < height_in_chunks; i++) {
+        for (var i = 0; i < heightInChunks; i++) {
             octx.beginPath();
             octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
             octx.lineTo(cw + tileSize, i * tileSize + firstTilePosOnScreen.y);
@@ -59,7 +132,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
     function renderTile(x, y) {
         var tile = tileSource.getTile(x, y);
         var rect = screenRect(x, y);
-        tileRenderer.render(ctx, rect, tile);
+        return tileRenderer.render(gl, rect, tile);
     }
 
     var tileFromScreen = (screenPos) => new Vec(tileXFromScreen(screenPos.x), tileYFromScreen(screenPos.y));
@@ -166,6 +239,7 @@ function TilePlane(tileSource, tileRenderer, tileSize, canvas, overlayCanvas) {
         let yo = offset.y + ch / 2;
         offset.x += Math.round(xo * tileSize / oldTileSize - xo);
         offset.y += Math.round(yo * tileSize / oldTileSize - yo);
+        updatePos();
         render();
     }
 

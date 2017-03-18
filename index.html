@@ -35,20 +35,110 @@
                 var overlayCanvas = document.getElementById("canvasOverlay");
                 updateCanvasSize(tileCanvas);
                 updateCanvasSize(overlayCanvas);
-                
+
                 function resizeCallback() {
                     updateCanvasSize(tileCanvas);
                     updateCanvasSize(overlayCanvas);
                     plane.render();
                 }
+
+                /** 
+                 * @type WebGLRenderingContext 
+                 */
+                var gl = tileCanvas.getContext("webgl");
+
+                gl.translate = function(x, y) {
+                    gl.uniform4f(translation, x, y, 0, 0);
+                };
                 
+                gl.updateArraysAndElements = function(vertexArray, elementArray) {
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                    gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertexArray);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elements);
+                    gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, elementArray);
+                };
+                
+                gl.updateColors = function(colorArray) {
+                    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                    gl.bufferSubData(gl.ARRAY_BUFFER, 0, colorArray);
+                };
+                
+                gl.draw = function(len) {
+                    gl.clearColor(0.5, 0.5, 0.5, 1);
+                //gl.enable(gl.DEPTH_TEST);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                    gl.drawElements(gl.TRIANGLES, len, gl.UNSIGNED_SHORT, 0);
+                };
+
+                var vertexShaderSrc =
+                        "attribute vec3 pos;" +
+                        "attribute vec3 color;" +
+                        "uniform vec4 translation;" +
+                        "varying vec3 col;" +
+                        "void main(void) {" +
+                        "   gl_Position = vec4(pos, 1) + translation;" +
+                        "   col = color;" +
+                        "}";
+                
+                
+
+                var fragmentShaderSrc =
+                        "precision mediump float;" +
+                        "varying vec3 col;" +
+                        "void main(void) {" +
+                        "   gl_FragColor = vec4(col, 1.);" +
+                        "}";
+
+                var vertexBuffer = gl.createBuffer();
+                var colorBuffer = gl.createBuffer();
+                var elements = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, 1000 * 1000 * 4 * 2, gl.DYNAMIC_DRAW);
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+                
+                gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, 1000 * 1000 * 4 * 3, gl.DYNAMIC_DRAW);
+                gl.bindBuffer(gl.ARRAY_BUFFER, null);
+                
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elements);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, 1000 * 1000 * 6, gl.DYNAMIC_DRAW);
+                //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+                
+                var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+                gl.shaderSource(vertexShader, vertexShaderSrc);
+                gl.compileShader(vertexShader);
+                
+                var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+                gl.shaderSource(fragmentShader, fragmentShaderSrc);
+                gl.compileShader(fragmentShader);
+                
+                var program = gl.createProgram();
+                gl.attachShader(program, vertexShader);
+                gl.attachShader(program, fragmentShader);
+                gl.linkProgram(program);
+                gl.useProgram(program);
+                
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                var translation = gl.getUniformLocation(program, "translation");
+                
+                var posAttr = gl.getAttribLocation(program, "pos");
+                var colorAttr = gl.getAttribLocation(program, "color");
+                gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(posAttr);
+                gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                gl.vertexAttribPointer(colorAttr, 3, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(colorAttr);
+                gl.clearColor(0.5, 0.5, 0.5, 1);
+//                gl.enable(gl.DEPTH_TEST);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
                 window.addEventListener("resize", resizeCallback);
 
                 var board = new Board(200, 200);
                 var tempBoard = new Board(200, 200);
                 tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
                 var terraRender = new TerrainRenderer();
-                var plane = new TilePlane(board, terraRender, 20, tileCanvas, overlayCanvas);
+                var plane = new TilePlane(board, terraRender, 20, tileCanvas, overlayCanvas, gl);
                 
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
                 var adjMap = new Terrain8AdjMapper();
@@ -71,7 +161,7 @@
                 forestSeeder.apply(board);
                 forestGrower.apply(board, 6);
                 plane.render();
-                startWaterAnim(board, plane);
+                //startWaterAnim(board, plane);
             }
 
         </script>
