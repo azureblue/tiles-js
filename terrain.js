@@ -44,14 +44,6 @@ function TerrainTileUtils(colorDelta = TERRAIN_COLOR_DELTA) {
     };
 }
 
-function TerrainRenderer() {
-    var nullColor = new Color(50, 50, 50);
-    this.render = (ctx, rect, tile) => {
-        var color = tile !== undefined ? tile.color : nullColor;
-        return color;
-    };
-}
-
 function RandomTerrainGenerator(values, weights) {
     this.generate = (board) => {
         board.iteratePositions((x, y) => {

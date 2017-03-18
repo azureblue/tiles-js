@@ -22,10 +22,10 @@
                 window.setInterval(() => {
                     board.iteratePositions((x, y, ter) => {
                         if (ter.type === WATER && Math.random() < 0.2) {
-                            tileUtils.resetTile(ter, WATER);
-                            //plane.renderTile(x, y);
+                            tileUtils.resetTile(ter, WATER);                            
                         }
                     });
+                    plane.render();
                 }, 200);
             }
             function start() {
@@ -35,7 +35,8 @@
                 updateCanvasSize(overlayCanvas);
                 function resizeCallback() {
                     updateCanvasSize(tileCanvas);
-                    updateCanvasSize(overlayCanvas);                    
+                    updateCanvasSize(overlayCanvas);
+                    plane.updateSize();
                     plane.render();
                 }
 
@@ -43,7 +44,7 @@
                 var board = new Board(200, 200);
                 var tempBoard = new Board(200, 200);
                 tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
-                var terraRender = new TerrainRenderer();
+                
                 var plane = new TilePlane(board, 20, tileCanvas, overlayCanvas);
                 
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
@@ -69,11 +70,11 @@
                 
                 resizeCallback();
                 plane.render();
-                function renderLoop() {
-                    plane.render();
-                    window.requestAnimationFrame(renderLoop);
-                }
-                //window.requestAnimationFrame(renderLoop);
+//                function renderLoop() {
+//                    plane.render();
+//                    window.requestAnimationFrame(renderLoop);
+//                }
+//                window.requestAnimationFrame(renderLoop);
                 startWaterAnim(board, plane);
             }
         </script>

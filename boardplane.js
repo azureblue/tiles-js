@@ -5,11 +5,10 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
     var octx = overlayCanvas.getContext("2d");
     var mouse_down_point, mouse_move_point, dragging = false;
     var touches = [];
-    var selected = undefined;
+    var selected;
     var offset = new Vec(0, 0);
     var cw, ch;
     var widthInChunks, heightInChunks;
-    var firstTilePosOnScreen;
     var gl;
     var gridVertices;
     var gridColors;
@@ -26,11 +25,11 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
     overlayCanvas.addEventListener("wheel", handle_mouse_wheel);
 
     this.render = render;
-    
+    this.updateSize = updateSize;
     init();
-    updatePos();
+    updateSize();
     
-    function updatePos() {
+    function updateSize() {
         cw = canvas.clientWidth;
         ch = canvas.clientHeight;
 
@@ -79,7 +78,7 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
         xalign += xalign >= 0 ? 0 : tileSize;
         yalign += yalign >= 0 ? 0 : tileSize;
 
-        firstTilePosOnScreen = new Vec(-xalign, -yalign);
+        var firstTilePosOnScreen = new Vec(-xalign, -yalign);
         gl.viewport(0, 0, cw, ch);
         gl.translate(-xalign / cw * 2, yalign / ch * 2);
 
@@ -238,7 +237,7 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
         let yo = offset.y + ch / 2;
         offset.x += Math.round(xo * tileSize / oldTileSize - xo);
         offset.y += Math.round(yo * tileSize / oldTileSize - yo);
-        updatePos();
+        updateSize();
         render();
     }
 
