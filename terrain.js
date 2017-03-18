@@ -23,13 +23,9 @@ function TerrainTile(type, color) {
 }
 
 TerrainTile.prototype = {};
-TerrainTile.prototype.isWaterType = function () {
-    return this.type <= 0;
-};
-TerrainTile.prototype.isLandType = function () {
-    return this.type > 0 && this.type < 4;
-};
-TerrainTile.prototype.setToTile = function (tile) {
+TerrainTile.prototype.isWaterType = function() { return this.type <= 0; };
+TerrainTile.prototype.isLandType = function() { return this.type > 0 && this.type < 4; };
+TerrainTile.prototype.setToTile = function(tile) {
     this.type = tile.type;
     this.color = tile.color;
 };
@@ -50,7 +46,6 @@ function TerrainTileUtils(colorDelta = TERRAIN_COLOR_DELTA) {
 
 function TerrainRenderer() {
     var nullColor = new Color(50, 50, 50);
-
     this.render = (ctx, rect, tile) => {
         var color = tile !== undefined ? tile.color : nullColor;
         return color;
@@ -83,7 +78,7 @@ function Terrain8LazyAdjacency(board) {
             fetched = false;
         }
     };
-    this.getTerrains = function (terrain) {
+    this.getTerrains = function(terrain) {
         if (!fetched) {
             for (var i = -1; i < 2; i++)
                 for (var j = -1; j < 2; j++) {
@@ -104,7 +99,7 @@ function Terrain8AdjMapper() {
         var lazyAdj = new Terrain8LazyAdjacency(board);
         board.iteratePositions((x, y, tile) => {
             lazyAdj.reset(tile, x, y);
-            adjCallback(x, y, lazyAdj);
+            adjCallback(x, y, lazyAdj);            
         });
     };
 }
@@ -113,7 +108,7 @@ function Terrain8AdjMapper() {
         var lazyAdj = new Terrain8LazyAdjacency(board);
         board.iteratePositions((x, y, tile) => {
             lazyAdj.reset(tile, x, y);
-            adjCallback(x, y, lazyAdj);
+            adjCallback(x, y, lazyAdj);            
         });
     };
 }
@@ -212,7 +207,7 @@ function Terrain8ForestGrow() {
 
 function Terrain8Smoother() {
     var probs = [...TERRAINS];
-    var adjToProbs = function (adj) {
+    var adjToProbs = function(adj) {
         var currentType = adj.currentTile.type;
         probs.fill(0);
         for (var i = 0; i < TERRAINS.length; i++) {
@@ -234,7 +229,7 @@ function Terrain8MaxSmoother(smoothProbability = 1) {
             return targetTile.setToTile(adj.currentTile);
         var bestTerrain = currentType;
         var bestNumber = 1;
-        for (var i = 0; i < TERRAINS.length; i++) {
+        for (var i = 0; i < TERRAINS.length; i++) { 
             var ter = TERRAINS[i];
             var num = adj.getTerrains(ter);
             if (ter === currentType)
@@ -250,7 +245,7 @@ function Terrain8MaxSmoother(smoothProbability = 1) {
 
 function Terrain8LandSmoother() {
     var probs = [...LANDS];
-    var adjToProbs = function (adj) {
+    var adjToProbs = function(adj) {
         probs.fill(0);
         let currentType = adj.currentTile.type;
         for (var i = 0; i < LANDS.length; i++) {
