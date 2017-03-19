@@ -5,18 +5,19 @@ function Board(w, h) {
     this.get = (x, y) => array[y * w + x];
     this.set = (x, y, b) => array[y * w + x] = b;
     this.setAll = (board) => {
-        var ba = board.getArray();
-        for (var i = 0; i < array.length; i++)
-            array[i] = ba[i];
+        var bo = board.getArray();
+        var len = array.length;
+        for (var i = 0; i < len; i++)
+            array[i] = bo[i];
     };
     this.getArray = () => array;
     this.getWidth = () => w;
     this.getHeight = () => h;
     this.getTile = (x, y) => this.checkRange(x, y) ? this.get(x, y) : undefined;
-    this.iteratePositions = (xyCallback) => {
-        for (var i = 0; i < w; i++)
-            for (var j = 0; j < h; j++)
-                xyCallback(i, j, this.get(i, j));
+    this.iteratePositions = (callbackXYV) => {
+        var len = array.length;
+        for (var i = 0; i < len; i++)
+            callbackXYV(i % w, (i / w) >>> 0, array[i]);
     };
 }
 

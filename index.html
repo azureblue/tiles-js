@@ -62,7 +62,7 @@
                 var grassSeed = new Operator(adjMap, new Terrain8GrassSeed(), tempBoard);
                 
                 randGen.generate(board);
-                terraGrow.apply(board, 8);
+                terraGrow.apply(board, 9);
                 terraSmoother.apply(board, 4);
                 grassSeed.apply(board, 1);
                 grassGrow.apply(board, 5);
