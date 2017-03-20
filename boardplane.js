@@ -9,7 +9,7 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
     var offset = new Vec(0, 0);
     var cw, ch;
     var widthInChunks, heightInChunks;
-    var area;
+    var urArea, brArea, ulArea, blArea;
     var posAttr;
     var colorAttr;
     var gl;
@@ -32,12 +32,15 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
     function updateSize() {
         cw = canvas.clientWidth;
         ch = canvas.clientHeight;
-                area.updateAll();
+        urArea.updateAll();
+        brArea.updateAll();
+        ulArea.updateAll();
+        blArea.updateAll();
 
         widthInChunks = Math.floor((cw + tileSize - 1) / tileSize) + 1;
         heightInChunks = Math.floor((ch + tileSize - 1) / tileSize) + 1;
 
-        gl.scale(1 / cw * 20, 1 / ch * 20);
+        gl.scale(1 / cw * tileSize, 1 / ch * tileSize);
     }
 
     function render() {
@@ -47,13 +50,19 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
         var yalign = offset.y % tileSize;
         xalign += xalign >= 0 ? 0 : tileSize;
         yalign += yalign >= 0 ? 0 : tileSize;
-
-        var firstTilePosOnScreen = new Vec(-xalign, -yalign);
+        
         gl.clearColor(0.0, 0.0, 0.0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.viewport(0, 0, cw, ch);
-        gl.translate(-offset.x * 2 / cw, offset.y * 2  / ch);
-        area.draw(posAttr, colorAttr);
+        gl.translate(-offset.x * 2 / cw, offset.y * 2  / ch);        
+        urArea.draw(posAttr, colorAttr);
+        gl.translate(-offset.x * 2 / cw, offset.y * 2 / ch - tileSize * 100 / ch);
+        brArea.draw(posAttr, colorAttr);
+        gl.translate(-offset.x * 2 / cw - tileSize * 100 / cw, offset.y * 2  / ch);
+        ulArea.draw(posAttr, colorAttr);
+        gl.translate(-offset.x * 2 / cw - tileSize * 100 / cw, offset.y * 2 / ch - tileSize * 100 / ch);
+        blArea.draw(posAttr, colorAttr);
+        
 //        var gridLineWidth = tileSize / 150;
 //        octx.clearRect(0, 0, cw, ch);
 //        octx.lineWidth = 1;
@@ -185,8 +194,14 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
 
     function init() {
         gl = canvas.getContext("webgl");
-        area = new Area(tileSource);
-        area.init(gl);
+        urArea = new Area(tileSource);
+        urArea.init(gl);
+        brArea = new Area(tileSource);
+        brArea.init(gl);
+        ulArea = new Area(tileSource);
+        ulArea.init(gl);
+        blArea = new Area(tileSource);
+        blArea.init(gl);
 
         
 

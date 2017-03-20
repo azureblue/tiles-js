@@ -76,7 +76,7 @@ function Terrain8LazyAdjacency(board) {
                 for (var j = -1; j < 2; j++) {
                     if (i === 0 && j === 0)
                         continue;
-                    var tile = board.get(x + i, y + j);
+                    var tile = board.getTile(x + i, y + j);
                     if (tile !== undefined)
                         adjArray[tile.type]++;
                 }
