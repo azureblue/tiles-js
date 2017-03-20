@@ -9,10 +9,11 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
     var offset = new Vec(0, 0);
     var cw, ch;
     var widthInChunks, heightInChunks;
+    var area;
+    var posAttr;
+    var colorAttr;
     var gl;
-    var gridVertices;
-    var gridColors;
-    var gridElements;
+
     var nullColor = new Color(50, 50, 50);
 
     overlayCanvas.addEventListener("touchstart", handleTouchstart);
@@ -27,47 +28,16 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
     this.render = render;
     this.updateSize = updateSize;
     init();
-    updateSize();
     
     function updateSize() {
         cw = canvas.clientWidth;
         ch = canvas.clientHeight;
+                area.updateAll();
 
         widthInChunks = Math.floor((cw + tileSize - 1) / tileSize) + 1;
         heightInChunks = Math.floor((ch + tileSize - 1) / tileSize) + 1;
 
-        gridVertices = new Float32Array(widthInChunks * heightInChunks * 8);
-        gridColors = new Float32Array(widthInChunks * heightInChunks * 12);
-        gridElements = new Uint16Array(widthInChunks * heightInChunks * 6);
-
-        var vertex = 0;
-        var element = 0;
-        var vertexElement = 0;
-        for (var x = 0; x < widthInChunks; x++)
-            for (var y = 0; y < heightInChunks; y++) {
-                gridElements[element++] = vertexElement;
-                gridElements[element++] = vertexElement + 1;
-                gridElements[element++] = vertexElement + 2;
-
-                gridElements[element++] = vertexElement + 1;
-                gridElements[element++] = vertexElement + 2;
-                gridElements[element++] = vertexElement + 3;
-                vertexElement += 4;
-
-                gridVertices[vertex++] = -1 + (x * tileSize) / cw * 2;
-                gridVertices[vertex++] = 1 - (y * tileSize) / ch * 2;
-
-                gridVertices[vertex++] = -1 + (x * tileSize + tileSize) / cw * 2;
-                gridVertices[vertex++] = 1 - (y * tileSize) / ch * 2;
-
-                gridVertices[vertex++] = -1 + (x * tileSize) / cw * 2;
-                gridVertices[vertex++] = 1 - (y * tileSize + tileSize) / ch * 2;
-
-                gridVertices[vertex++] = -1 + (x * tileSize + tileSize) / cw * 2;
-                gridVertices[vertex++] = 1 - (y * tileSize + tileSize) / ch * 2;
-            }
-        gl.updateArraysAndElements(gridVertices, gridElements);
-
+        gl.scale(1 / cw * 20, 1 / ch * 20);
     }
 
     function render() {
@@ -79,58 +49,28 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
         yalign += yalign >= 0 ? 0 : tileSize;
 
         var firstTilePosOnScreen = new Vec(-xalign, -yalign);
+        gl.clearColor(0.0, 0.0, 0.0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
         gl.viewport(0, 0, cw, ch);
-        gl.translate(-xalign / cw * 2, yalign / ch * 2);
+        gl.translate(-offset.x * 2 / cw, offset.y * 2  / ch);
+        area.draw(posAttr, colorAttr);
+//        var gridLineWidth = tileSize / 150;
+//        octx.clearRect(0, 0, cw, ch);
+//        octx.lineWidth = 1;
+//        octx.strokeStyle = "rgba(50, 50, 50, " + gridLineWidth + ")";
+//        for (var i = 0; i < widthInChunks; i++) {
+//            octx.beginPath();
+//            octx.moveTo(i * tileSize + firstTilePosOnScreen.x, firstTilePosOnScreen.y);
+//            octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
+//            octx.stroke();
+//        }
 
-        var firstTile = tileFromScreen(firstTilePosOnScreen);
-        var tileOffset = new Vec();
-        var vertexColor = 0;
-        for (tileOffset.x = 0; tileOffset.x < widthInChunks; tileOffset.x++)
-            for (tileOffset.y = 0; tileOffset.y < heightInChunks; tileOffset.y++) {
-                
-                var tile = tileSource.getTile(firstTile.x + tileOffset.x, firstTile.y + tileOffset.y);
-                var col = tile ? tile.color : nullColor;
-                
-                var r = col.r / 255;
-                var g = col.g / 255;
-                var b = col.b / 255;
-                gridColors[vertexColor++] = r;
-                gridColors[vertexColor++] = g;
-                gridColors[vertexColor++] = b;
-
-                gridColors[vertexColor++] = r;
-                gridColors[vertexColor++] = g;
-                gridColors[vertexColor++] = b;
-
-                gridColors[vertexColor++] = r;
-                gridColors[vertexColor++] = g;
-                gridColors[vertexColor++] = b;
-
-                gridColors[vertexColor++] = r;
-                gridColors[vertexColor++] = g;
-                gridColors[vertexColor++] = b;
-            }
-
-        gl.updateColors(gridColors);
-        gl.draw(gridElements.length);
-
-        var gridLineWidth = tileSize / 150;
-        octx.clearRect(0, 0, cw, ch);
-        octx.lineWidth = 1;
-        octx.strokeStyle = "rgba(50, 50, 50, " + gridLineWidth + ")";
-        for (var i = 0; i < widthInChunks; i++) {
-            octx.beginPath();
-            octx.moveTo(i * tileSize + firstTilePosOnScreen.x, firstTilePosOnScreen.y);
-            octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
-            octx.stroke();
-        }
-
-        for (var i = 0; i < heightInChunks; i++) {
-            octx.beginPath();
-            octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
-            octx.lineTo(cw + tileSize, i * tileSize + firstTilePosOnScreen.y);
-            octx.stroke();
-        }
+//        for (var i = 0; i < heightInChunks; i++) {
+//            octx.beginPath();
+//            octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
+//            octx.lineTo(cw + tileSize, i * tileSize + firstTilePosOnScreen.y);
+//            octx.stroke();
+//        }
     }
 
     var tileFromScreen = (screenPos) => new Vec(tileXFromScreen(screenPos.x), tileYFromScreen(screenPos.y));
@@ -245,36 +185,32 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
 
     function init() {
         gl = canvas.getContext("webgl");
+        area = new Area(tileSource);
+        area.init(gl);
+
+        
 
         gl.translate = function (x, y) {
             gl.uniform4f(translation, x, y, 0, 0);
         };
-
-        gl.updateArraysAndElements = function (vertexArray, elementArray) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bufferSubData(gl.ARRAY_BUFFER, 0, vertexArray);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elements);
-            gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, elementArray);
-        };
-
-        gl.updateColors = function (colorArray) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-            gl.bufferSubData(gl.ARRAY_BUFFER, 0, colorArray);
-        };
-
-        gl.draw = function (len) {
-            gl.clearColor(0.0, 0.0, 0.0, 1);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.drawElements(gl.TRIANGLES, len, gl.UNSIGNED_SHORT, 0);
+        
+        gl.scale = function (scx, scy) {
+            gl.uniformMatrix4fv(scale, false, new Float32Array([
+                scx, 0, 0, 0,
+                0, scy, 0, 0,
+                0,   0, 1, 0,
+                0,   0, 0, 1
+            ]));
         };
 
         var vertexShaderSrc =
                 "attribute vec3 pos;" +
                 "attribute vec3 color;" +
+                "uniform mat4 scale;" +
                 "uniform vec4 translation;" +
                 "varying vec3 col;" +
                 "void main(void) {" +
-                "   gl_Position = vec4(pos, 1) + translation;" +
+                "   gl_Position = scale * vec4(pos, 1) + translation;" +
                 "   col = color;" +
                 "}";
 
@@ -285,21 +221,6 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
                 "void main(void) {" +
                 "   gl_FragColor = vec4(col, 1.);" +
                 "}";
-
-        var vertexBuffer = gl.createBuffer();
-        var colorBuffer = gl.createBuffer();
-        var elements = gl.createBuffer();
-
-        const MAX_QUADS = 1000 * 1000;
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, MAX_QUADS * 4 * 2, gl.STATIC_DRAW);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, MAX_QUADS * 4 * 3, gl.DYNAMIC_DRAW);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elements);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, MAX_QUADS * 6, gl.STATIC_DRAW);
 
         var vertexShader = gl.createShader(gl.VERTEX_SHADER);
         gl.shaderSource(vertexShader, vertexShaderSrc);
@@ -316,20 +237,14 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
         gl.useProgram(program);
 
         var translation = gl.getUniformLocation(program, "translation");
+        var scale = gl.getUniformLocation(program, "scale");
 
-        var posAttr = gl.getAttribLocation(program, "pos");
-        var colorAttr = gl.getAttribLocation(program, "color");
+        posAttr = gl.getAttribLocation(program, "pos");
+        colorAttr = gl.getAttribLocation(program, "color");
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(posAttr);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.vertexAttribPointer(colorAttr, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(colorAttr);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1);
-        gl.clear(gl.COLOR_BUFFER_BIT);
     }
 }
 
