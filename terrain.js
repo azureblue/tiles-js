@@ -27,7 +27,7 @@ TerrainTile.prototype.isWaterType = function() { return this.type <= 0; };
 TerrainTile.prototype.isLandType = function() { return this.type > 0 && this.type < 4; };
 TerrainTile.prototype.setToTile = function(tile) {
     this.type = tile.type;
-    this.color = tile.color;
+    this.color.setToColor(tile.color);
 };
 
 var tileUtils = new TerrainTileUtils();
