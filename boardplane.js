@@ -1,18 +1,19 @@
 /* global Vec */
 
-function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
-    //var ctx = canvas.getContext("2d");
-    var octx = overlayCanvas.getContext("2d");
+function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
+  const AREA_SIZE = 100;  
+  var octx = overlayCanvas.getContext("2d");
     var mouse_down_point, mouse_move_point, dragging = false;
     var touches = [];
     var selected;
     var offset = new Vec(0, 0);
     var cw, ch;
+    var areaScreenSize;
     var widthInChunks, heightInChunks;
-    var urArea, brArea, ulArea, blArea;
     var posAttr;
     var colorAttr;
     var gl;
+    var world;
 
     var nullColor = new Color(50, 50, 50);
 
@@ -32,14 +33,9 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
     function updateSize() {
         cw = canvas.clientWidth;
         ch = canvas.clientHeight;
-        urArea.updateAll();
-        brArea.updateAll();
-        ulArea.updateAll();
-        blArea.updateAll();
-
-        widthInChunks = Math.floor((cw + tileSize - 1) / tileSize) + 1;
-        heightInChunks = Math.floor((ch + tileSize - 1) / tileSize) + 1;
-
+        areaScreenSize = AREA_SIZE * tileSize;
+        widthInChunks = Math.ceil((cw + areaScreenSize - 1) / areaScreenSize) + 1;
+        heightInChunks = Math.ceil((ch + areaScreenSize - 1) / areaScreenSize) + 1;
         gl.scale(1 / cw * tileSize, 1 / ch * tileSize);
     }
 
@@ -50,36 +46,32 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
         var yalign = offset.y % tileSize;
         xalign += xalign >= 0 ? 0 : tileSize;
         yalign += yalign >= 0 ? 0 : tileSize;
+        var firstTilePosOnScreen = new Vec(-xalign, -yalign);
+        
+        var xalignArea = (offset.x * 2) % areaScreenSize;
+        var yalignArea = (offset.y * 2) % areaScreenSize;
+        xalignArea += xalignArea >= 0 ? 0 : areaScreenSize;
+        yalignArea += yalignArea >= 0 ? 0 : areaScreenSize;
+        var firstTilePosOnScreenArea = new Vec(-xalignArea, -yalignArea);
+        
+        var areaTilePos = new Vec(
+            Math.floor((firstTilePosOnScreenArea.x + offset.x * 2) / areaScreenSize), 
+            Math.floor((firstTilePosOnScreenArea.y + offset.y * 2) / areaScreenSize));
         
         gl.clearColor(0.0, 0.0, 0.0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.viewport(0, 0, cw, ch);
-        gl.translate(-offset.x * 2 / cw, offset.y * 2  / ch);        
-        urArea.draw(posAttr, colorAttr);
-        gl.translate(-offset.x * 2 / cw, offset.y * 2 / ch - tileSize * 100 / ch);
-        brArea.draw(posAttr, colorAttr);
-        gl.translate(-offset.x * 2 / cw - tileSize * 100 / cw, offset.y * 2  / ch);
-        ulArea.draw(posAttr, colorAttr);
-        gl.translate(-offset.x * 2 / cw - tileSize * 100 / cw, offset.y * 2 / ch - tileSize * 100 / ch);
-        blArea.draw(posAttr, colorAttr);
         
-//        var gridLineWidth = tileSize / 150;
-//        octx.clearRect(0, 0, cw, ch);
-//        octx.lineWidth = 1;
-//        octx.strokeStyle = "rgba(50, 50, 50, " + gridLineWidth + ")";
-//        for (var i = 0; i < widthInChunks; i++) {
-//            octx.beginPath();
-//            octx.moveTo(i * tileSize + firstTilePosOnScreen.x, firstTilePosOnScreen.y);
-//            octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
-//            octx.stroke();
-//        }
-
-//        for (var i = 0; i < heightInChunks; i++) {
-//            octx.beginPath();
-//            octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
-//            octx.lineTo(cw + tileSize, i * tileSize + firstTilePosOnScreen.y);
-//            octx.stroke();
-//        }
+        for (var x = 0; x < widthInChunks; x++)
+            for (var y = 0; y < heightInChunks; y++) {
+                var area = world.getAreaBoard(areaTilePos.x + x, areaTilePos.y + y);
+                gl.translate(
+                    -1 + (firstTilePosOnScreenArea.x + x * areaScreenSize) / cw,
+                    -1 + (-firstTilePosOnScreenArea.y + - y * areaScreenSize) / ch
+                );
+                area.draw(posAttr, colorAttr);
+            }
+      
     }
 
     var tileFromScreen = (screenPos) => new Vec(tileXFromScreen(screenPos.x), tileYFromScreen(screenPos.y));
@@ -194,17 +186,8 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
 
     function init() {
         gl = canvas.getContext("webgl");
-        urArea = new Area(tileSource);
-        urArea.init(gl);
-        brArea = new Area(tileSource);
-        brArea.init(gl);
-        ulArea = new Area(tileSource);
-        ulArea.init(gl);
-        blArea = new Area(tileSource);
-        blArea.init(gl);
-
+        world = new AreaBoard(worldBoard, AREA_SIZE, gl);
         
-
         gl.translate = function (x, y) {
             gl.uniform4f(translation, x, y, 0, 0);
         };
@@ -228,7 +211,6 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
                 "   gl_Position = scale * vec4(pos, 1) + translation;" +
                 "   col = color;" +
                 "}";
-
 
         var fragmentShaderSrc =
                 "precision mediump float;" +

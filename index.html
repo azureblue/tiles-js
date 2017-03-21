@@ -14,6 +14,7 @@
         <script src="generator.js"></script>
         <script src="terrain.js"></script>
         <script src="area.js"></script>
+        <script src="world.js"></script>
         
         <script>
             function updateCanvasSize(canvas) {
@@ -43,33 +44,32 @@
                 }
 
                 window.addEventListener("resize", resizeCallback);
-                var board = new Board(100, 100);
-                var tempBoard = new Board(100, 100);
+                var bo = new Board(500, 500);
+                var tempBoard = new Board(500, 500);
                 tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
-                
-                var plane = new TilePlane(board, 20, tileCanvas, overlayCanvas);
                 
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
                 var adjMap = new Terrain8AdjMapper();
-                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2), tempBoard);
-                var terraSmoother = new Operator(adjMap, new Terrain8Smoother(), tempBoard);
-                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5), tempBoard);
-                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother(), tempBoard);
-                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder(), tempBoard);
-                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow(), tempBoard);
-                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow(), tempBoard);
-                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed(), tempBoard);
+                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2));
+                var terraSmoother = new Operator(adjMap, new Terrain8Smoother());
+                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5));
+                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother());
+                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder());
+                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow());
+                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow());
+                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed());
+                randGen.generate(bo);
+                terraGrow.apply(bo, tempBoard, 9);
+                terraSmoother.apply(bo, tempBoard, 4);
+                grassSeed.apply(bo, tempBoard, 1);
+                grassGrow.apply(bo, tempBoard, 5);
+                terraSmootherPr.apply(bo, tempBoard, 8);
+                terraMaxSmoother.apply(bo, tempBoard);
+                forestSeeder.apply(bo, tempBoard);
+                forestGrower.apply(bo, tempBoard, 6);
                 
-                randGen.generate(board);
-                terraGrow.apply(board, 9);
-                terraSmoother.apply(board, 4);
-                grassSeed.apply(board, 1);
-                grassGrow.apply(board, 5);
-                terraSmootherPr.apply(board, 8);
-                terraMaxSmoother.apply(board);
-                forestSeeder.apply(board);
-                forestGrower.apply(board, 6);
-                
+                var plane = new TilePlane(bo, 20, tileCanvas, overlayCanvas);
+             
                 resizeCallback();
                 plane.updateSize();
                 plane.render();
@@ -78,7 +78,7 @@
 //                    window.requestAnimationFrame(renderLoop);
 //                }
 //                window.requestAnimationFrame(renderLoop);
-                startWaterAnim(board, plane);
+                //startWaterAnim(board, plane);
             }
         </script>
     </head>

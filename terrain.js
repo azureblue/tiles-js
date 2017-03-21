@@ -5,7 +5,7 @@ const GRASS = 2;
 const FOREST = 3;
 
 const TERRAIN_COLORS = [
-    new Color(50, 80, 235),
+    new Color(50, 80, 155),
     new Color(130, 110, 80),
     new Color(30, 170, 20),
     new Color(20, 110, 10),
@@ -27,7 +27,7 @@ TerrainTile.prototype.isWaterType = function() { return this.type <= 0; };
 TerrainTile.prototype.isLandType = function() { return this.type > 0 && this.type < 4; };
 TerrainTile.prototype.setToTile = function(tile) {
     this.type = tile.type;
-    this.color = tile.color;
+    this.color.setToColor(tile.color);
 };
 
 var tileUtils = new TerrainTileUtils();
@@ -87,21 +87,12 @@ function Terrain8LazyAdjacency(board) {
 }
 
 function Terrain8AdjMapper() {
-    this.iterate = (board, adjCallback) => {
+    this.iterate = (board, adjCallback, bounds) => {
         var lazyAdj = new Terrain8LazyAdjacency(board);
         board.iteratePositions((x, y, tile) => {
             lazyAdj.reset(tile, x, y);
             adjCallback(x, y, lazyAdj);            
-        });
-    };
-}
-function Terrain8AdjMapper() {
-    this.iterate = (board, adjCallback) => {
-        var lazyAdj = new Terrain8LazyAdjacency(board);
-        board.iteratePositions((x, y, tile) => {
-            lazyAdj.reset(tile, x, y);
-            adjCallback(x, y, lazyAdj);            
-        });
+        }, bounds);
     };
 }
 

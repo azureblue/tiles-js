@@ -20,15 +20,24 @@ function swapBoards(boardA, boardB) {
     }
 }
 
-function Operator(adjacencyMapper, chooser, tempBoard) {
-    this.apply = (board, times = 1) => {
+function Operator(adjacencyMapper, chooser) {
+    this.apply = (board, tempBoard, times = 1, bounds) => {
+        if (bounds === undefined)
+            bounds = board.getBounds();
+        
         for (var i = 0; i < times; i++) {
             adjacencyMapper.iterate(board, 
-                (x, y, adj) => chooser.updateTile(adj, tempBoard.get(x, y))
+                (x, y, adj) => chooser.updateTile(adj, tempBoard.get(x, y)),
+                bounds
             );
+    
             [board, tempBoard] = [tempBoard, board];
         }
-        if (times % 2 === 1)
-            swapBoards(board, tempBoard);
+        if (times % 2 === 1) {
+            board.iteratePositions((x, y, v) => { 
+                board.set(x, y, tempBoard.get(x, y));
+                tempBoard.set(x, y, v);
+            }, bounds);
+        }
     };
 }

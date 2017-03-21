@@ -2,10 +2,8 @@
 
 Another "just playing with JavaScript" project.
 
-Tile maps generation using only random cellular automata. [+ rendering (with dragging and zooming)]
+Tile maps generation using only random cellular automata. [+ webgl rendering (with dragging and zooming)]
 
-[http://azureblue.github.io/tiles-js]. 
-
-[http://azureblue.github.io/tiles-js/webgl] (webgl rendering).
+[http://azureblue.github.io/tiles-js].
 
 A fairly new web browser version is required.
