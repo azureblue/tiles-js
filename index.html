@@ -14,6 +14,7 @@
         <script src="generator.js"></script>
         <script src="terrain.js"></script>
         <script src="area.js"></script>
+        <script src="world.js"></script>
         
         <script>
             function updateCanvasSize(canvas) {
@@ -47,8 +48,6 @@
                 var tempBoard = new Board(100, 100);
                 tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
                 
-                var plane = new TilePlane(board, 20, tileCanvas, overlayCanvas);
-                
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
                 var adjMap = new Terrain8AdjMapper();
                 var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2), tempBoard);
@@ -60,15 +59,31 @@
                 var grassGrow = new Operator(adjMap, new Terrain8GrassGrow(), tempBoard);
                 var grassSeed = new Operator(adjMap, new Terrain8GrassSeed(), tempBoard);
                 
-                randGen.generate(board);
-                terraGrow.apply(board, 9);
-                terraSmoother.apply(board, 4);
-                grassSeed.apply(board, 1);
-                grassGrow.apply(board, 5);
-                terraSmootherPr.apply(board, 8);
-                terraMaxSmoother.apply(board);
-                forestSeeder.apply(board);
-                forestGrower.apply(board, 6);
+                var world = new World({
+                    generate: function(bo) {
+                        randGen.generate(bo);
+                        terraGrow.apply(bo, 9);
+                        terraSmoother.apply(bo, 4);
+                        grassSeed.apply(bo, 1);
+                        grassGrow.apply(bo, 5);
+                        terraSmootherPr.apply(bo, 8);
+                        terraMaxSmoother.apply(bo);
+                        forestSeeder.apply(bo);
+                        forestGrower.apply(bo, 6);
+                    }
+                }, 100);
+                
+                var plane = new TilePlane(world, 20, tileCanvas, overlayCanvas);
+                
+//                randGen.generate(board);
+//                terraGrow.apply(board, 9);
+//                terraSmoother.apply(board, 4);
+//                grassSeed.apply(board, 1);
+//                grassGrow.apply(board, 5);
+//                terraSmootherPr.apply(board, 8);
+//                terraMaxSmoother.apply(board);
+//                forestSeeder.apply(board);
+//                forestGrower.apply(board, 6);
                 
                 resizeCallback();
                 plane.updateSize();
@@ -78,7 +93,7 @@
 //                    window.requestAnimationFrame(renderLoop);
 //                }
 //                window.requestAnimationFrame(renderLoop);
-                startWaterAnim(board, plane);
+                //startWaterAnim(board, plane);
             }
         </script>
     </head>

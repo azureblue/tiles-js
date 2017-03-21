@@ -194,13 +194,13 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
 
     function init() {
         gl = canvas.getContext("webgl");
-        urArea = new Area(tileSource);
+        urArea = new Area(tileSource.getAreaBoard(0, 0));
         urArea.init(gl);
-        brArea = new Area(tileSource);
+        brArea = new Area(tileSource.getAreaBoard(0, -1));
         brArea.init(gl);
-        ulArea = new Area(tileSource);
+        ulArea = new Area(tileSource.getAreaBoard(-1, 0));
         ulArea.init(gl);
-        blArea = new Area(tileSource);
+        blArea = new Area(tileSource.getAreaBoard(-1, -1));
         blArea.init(gl);
 
         
