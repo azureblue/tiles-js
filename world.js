@@ -15,17 +15,17 @@ function World(generator, areaSize) {
         var right = boardMap.get(hash(x + 1, y));
         
         var bo = new Board(areaSize, areaSize);
+//        bo.iteratePositions((x, y) => bo.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
         var adjView = new AdjBoard(bo, up, down, left, right);
-        generator.generateLand(bo);
-        generator.populateLand(bo);
+        generator.generateLand(adjView);
         
-        if (up !== undefined) {
+        if (up !== undefined)
             makeTransitionDown(up, bo);
-        }
-        
-        if (right !== undefined) {
+                
+        if (right !== undefined) 
             makeTransitionLeft(right, bo);
-        }
+        
+        generator.populateLand(adjView);
         
         boardMap.set(h, bo);
         return bo;
@@ -33,25 +33,37 @@ function World(generator, areaSize) {
 }
 
 function makeTransitionDown(boardUp, boardDown) {
+    var tempBoard = new Board(100, 100);
+                tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
+                
+    var adjMap = new Terrain8AdjMapper();
+                var terraSmoother = new Operator(adjMap, new Terrain8Smoother());
+                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5));
     var w = boardUp.getWidth();
     var lastRow = boardUp.getHeight() - 1;
     var lastType = boardUp.get(0, lastRow).type;
     var lastIdx = 0;    
     for (var i = 1; i < w; i++) {
-        if (boardUp.get(i, lastRow).type === lastType && i < w - 1)
+        var type = boardUp.get(i, lastRow).type;
+        if (type === lastType && i < w - 1)
             continue;
+        
+        if (lastType === WATER) {
         var peek = Math.random() * 2;
         var commonLen = i - lastIdx;
         var smoothLen = Math.floor(Math.sqrt(commonLen));
         for (var j = 1; j < smoothLen; j++) {
             var currentWidth = Math.cos(Math.PI / 2 * (j / smoothLen)) * commonLen;
-            for (var k = 0; k < currentWidth; k++) {
+            for (var k = 0; k < currentWidth; k++)
                 tileUtils.resetTile(boardDown.getTile(lastIdx + k +  Math.round(peek * (commonLen - currentWidth) / 2), j - 1), lastType);
-            }
+        }
         }
         lastIdx = i;
         lastType = boardUp.get(i, lastRow).type;
-    }
+    }    
+    var clip = new Rect(0, 50, w, 2);
+    terraSmoother.apply(boardDown, tempBoard, 2, clip);
+    
 }
 
 function makeTransitionLeft(boardRight, boardLeft) {
@@ -60,8 +72,11 @@ function makeTransitionLeft(boardRight, boardLeft) {
     var lastType = boardRight.get(0, 0).type;
     var lastIdx = 0;
     for (var i = 1; i < h; i++) {
-        if (boardRight.get(0, i).type === lastType && i < h - 1)
+        var type = boardRight.get(0, i).type;
+        if (type === lastType && i < h - 1)
             continue;
+        
+        if (lastType === WATER) {
         var peek = Math.random() * 2;
         var commonLen = i - lastIdx;
         var smoothLen = Math.floor(commonLen / 5) + 1;
@@ -71,6 +86,7 @@ function makeTransitionLeft(boardRight, boardLeft) {
                 tileUtils.resetTile(boardLeft.getTile(lastRow - (j - 1), lastIdx + k + Math.round(peek * (commonLen - currentWidth) / 2)), lastType);
             }
         }
+    }
         lastIdx = i;
         lastType = boardRight.get(0, i).type;
     }

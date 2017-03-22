@@ -87,21 +87,12 @@ function Terrain8LazyAdjacency(board) {
 }
 
 function Terrain8AdjMapper() {
-    this.iterate = (board, adjCallback) => {
+    this.iterate = (board, adjCallback, bounds) => {
         var lazyAdj = new Terrain8LazyAdjacency(board);
         board.iteratePositions((x, y, tile) => {
             lazyAdj.reset(tile, x, y);
             adjCallback(x, y, lazyAdj);            
-        });
-    };
-}
-function Terrain8AdjMapper() {
-    this.iterate = (board, adjCallback) => {
-        var lazyAdj = new Terrain8LazyAdjacency(board);
-        board.iteratePositions((x, y, tile) => {
-            lazyAdj.reset(tile, x, y);
-            adjCallback(x, y, lazyAdj);            
-        });
+        }, bounds);
     };
 }
 

@@ -11,13 +11,21 @@ function Board(w, h) {
             array[i] = bo[i];
     };
     this.getArray = () => array;
+    this.getBounds = () => bounds;
     this.getWidth = () => w;
     this.getHeight = () => h;
     this.getTile = (x, y) => this.checkRange(x, y) ? this.get(x, y) : undefined;
-    this.iteratePositions = (callbackXYV) => {
-        var len = array.length;
-        for (var i = 0; i < len; i++)
-            callbackXYV(i % w, (i / w) >>> 0, array[i]);
+    this.iteratePositions = function(callbackXYV, subboardRect = bounds) {        
+        var len = subboardRect.width * subboardRect.height;
+        var rectW = subboardRect.width;
+        var rectX = subboardRect.x;
+        var rectY = subboardRect.y;
+        for (var i = 0; i < len; i++) {
+            var x = rectX + (i % rectW);
+            var y = rectY + ((i / rectW) >>> 0);
+            callbackXYV(x, y, array[y * w + x]);
+        }
     };
+    
 }
 
