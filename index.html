@@ -50,41 +50,35 @@
                 
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
                 var adjMap = new Terrain8AdjMapper();
-                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2), tempBoard);
-                var terraSmoother = new Operator(adjMap, new Terrain8Smoother(), tempBoard);
-                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5), tempBoard);
-                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother(), tempBoard);
-                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder(), tempBoard);
-                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow(), tempBoard);
-                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow(), tempBoard);
-                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed(), tempBoard);
+                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2));
+                var terraSmoother = new Operator(adjMap, new Terrain8Smoother());
+                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5));
+                var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother());
+                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder());
+                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow());
+                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow());
+                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed());
                 
                 var world = new World({
-                    generate: function(bo) {
+                    generateLand: function(bo) {
                         randGen.generate(bo);
-                        terraGrow.apply(bo, 9);
-                        terraSmoother.apply(bo, 4);
-                        grassSeed.apply(bo, 1);
-                        grassGrow.apply(bo, 5);
-                        terraSmootherPr.apply(bo, 8);
-                        terraMaxSmoother.apply(bo);
-                        forestSeeder.apply(bo);
-                        forestGrower.apply(bo, 6);
+                        terraGrow.apply(bo, tempBoard, 9);
+                        terraSmoother.apply(bo, tempBoard, 4);
+                    },
+                    populateLand: function(bo) {
+                        grassSeed.apply(bo, tempBoard, 1);
+                        grassGrow.apply(bo, tempBoard, 5);
+                        terraSmootherPr.apply(bo, tempBoard, 8);
+                        //terraMaxSmoother.apply(bo, tempBoard);
+                        forestSeeder.apply(bo, tempBoard);
+                        forestGrower.apply(bo, tempBoard, 6);
+                    
                     }
+                    
                 }, 100);
                 
                 var plane = new TilePlane(world, 20, tileCanvas, overlayCanvas);
-                
-//                randGen.generate(board);
-//                terraGrow.apply(board, 9);
-//                terraSmoother.apply(board, 4);
-//                grassSeed.apply(board, 1);
-//                grassGrow.apply(board, 5);
-//                terraSmootherPr.apply(board, 8);
-//                terraMaxSmoother.apply(board);
-//                forestSeeder.apply(board);
-//                forestGrower.apply(board, 6);
-                
+             
                 resizeCallback();
                 plane.updateSize();
                 plane.render();

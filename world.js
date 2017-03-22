@@ -11,16 +11,69 @@ function World(generator, areaSize) {
         
         var up = boardMap.get(hash(x, y - 1));
         var down = boardMap.get(hash(x, y + 1));
-        var left = boardMap.get(hash(x - 1, 0));
-        var right = boardMap.get(hash(x + 1, 0));
+        var left = boardMap.get(hash(x - 1, y));
+        var right = boardMap.get(hash(x + 1, y));
         
         var bo = new Board(areaSize, areaSize);
         var adjView = new AdjBoard(bo, up, down, left, right);
+        generator.generateLand(bo);
+        generator.populateLand(bo);
         
-        generator.generate(adjView);
+        if (up !== undefined) {
+            makeTransitionDown(up, bo);
+        }
+        
+        if (right !== undefined) {
+            makeTransitionLeft(right, bo);
+        }
+        
         boardMap.set(h, bo);
         return bo;
     };
+}
+
+function makeTransitionDown(boardUp, boardDown) {
+    var w = boardUp.getWidth();
+    var lastRow = boardUp.getHeight() - 1;
+    var lastType = boardUp.get(0, lastRow).type;
+    var lastIdx = 0;    
+    for (var i = 1; i < w; i++) {
+        if (boardUp.get(i, lastRow).type === lastType && i < w - 1)
+            continue;
+        var peek = Math.random() * 2;
+        var commonLen = i - lastIdx;
+        var smoothLen = Math.floor(Math.sqrt(commonLen));
+        for (var j = 1; j < smoothLen; j++) {
+            var currentWidth = Math.cos(Math.PI / 2 * (j / smoothLen)) * commonLen;
+            for (var k = 0; k < currentWidth; k++) {
+                tileUtils.resetTile(boardDown.getTile(lastIdx + k +  Math.round(peek * (commonLen - currentWidth) / 2), j - 1), lastType);
+            }
+        }
+        lastIdx = i;
+        lastType = boardUp.get(i, lastRow).type;
+    }
+}
+
+function makeTransitionLeft(boardRight, boardLeft) {
+    var h = boardRight.getHeight();
+    var lastRow = boardLeft.getWidth() - 1;
+    var lastType = boardRight.get(0, 0).type;
+    var lastIdx = 0;
+    for (var i = 1; i < h; i++) {
+        if (boardRight.get(0, i).type === lastType && i < h - 1)
+            continue;
+        var peek = Math.random() * 2;
+        var commonLen = i - lastIdx;
+        var smoothLen = Math.floor(commonLen / 5) + 1;
+        for (var j = 1; j < smoothLen; j++) {
+            var currentWidth = Math.cos(Math.PI / 2 * (j / smoothLen)) * commonLen;
+            for (var k = 0; k < currentWidth; k++) {
+                tileUtils.resetTile(boardLeft.getTile(lastRow - (j - 1), lastIdx + k + Math.round(peek * (commonLen - currentWidth) / 2)), lastType);
+            }
+        }
+        lastIdx = i;
+        lastType = boardRight.get(0, i).type;
+    }
 }
 
 function AdjBoard(board, up, down, left, right) {

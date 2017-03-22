@@ -5,7 +5,7 @@ const GRASS = 2;
 const FOREST = 3;
 
 const TERRAIN_COLORS = [
-    new Color(50, 80, 235),
+    new Color(50, 80, 155),
     new Color(130, 110, 80),
     new Color(30, 170, 20),
     new Color(20, 110, 10),

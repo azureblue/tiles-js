@@ -20,15 +20,17 @@ function swapBoards(boardA, boardB) {
     }
 }
 
-function Operator(adjacencyMapper, chooser, tempBoard) {
-    this.apply = (board, times = 1) => {
+function Operator(adjacencyMapper, chooser) {
+    this.apply = (board, tempBoard, times = 1) => {
         for (var i = 0; i < times; i++) {
             adjacencyMapper.iterate(board, 
                 (x, y, adj) => chooser.updateTile(adj, tempBoard.get(x, y))
             );
+    
             [board, tempBoard] = [tempBoard, board];
         }
-        if (times % 2 === 1)
+        if (times % 2 === 1) {
             swapBoards(board, tempBoard);
+        }
     };
 }
