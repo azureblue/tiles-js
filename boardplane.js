@@ -50,6 +50,8 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
         var yalign = offset.y % tileSize;
         xalign += xalign >= 0 ? 0 : tileSize;
         yalign += yalign >= 0 ? 0 : tileSize;
+        var firstTilePosOnScreen = new Vec(-xalign, -yalign);
+        
         
         gl.clearColor(0.0, 0.0, 0.0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -73,7 +75,7 @@ function TilePlane(tileSource, tileSize, canvas, overlayCanvas) {
 //            octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
 //            octx.stroke();
 //        }
-
+//
 //        for (var i = 0; i < heightInChunks; i++) {
 //            octx.beginPath();
 //            octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
