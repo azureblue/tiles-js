@@ -44,8 +44,8 @@
                 }
 
                 window.addEventListener("resize", resizeCallback);
-                var board = new Board(100, 100);
-                var tempBoard = new Board(100, 100);
+                var bo = new Board(500, 500);
+                var tempBoard = new Board(500, 500);
                 tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
                 
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
@@ -58,26 +58,17 @@
                 var forestGrower = new Operator(adjMap, new Terrain8ForestGrow());
                 var grassGrow = new Operator(adjMap, new Terrain8GrassGrow());
                 var grassSeed = new Operator(adjMap, new Terrain8GrassSeed());
+                randGen.generate(bo);
+                terraGrow.apply(bo, tempBoard, 9);
+                terraSmoother.apply(bo, tempBoard, 4);
+                grassSeed.apply(bo, tempBoard, 1);
+                grassGrow.apply(bo, tempBoard, 5);
+                terraSmootherPr.apply(bo, tempBoard, 8);
+                terraMaxSmoother.apply(bo, tempBoard);
+                forestSeeder.apply(bo, tempBoard);
+                forestGrower.apply(bo, tempBoard, 6);
                 
-                var world = new World({
-                    generateLand: function(bo) {
-                        randGen.generate(bo);
-                        terraGrow.apply(bo, tempBoard, 9);
-                        terraSmoother.apply(bo, tempBoard, 4);
-                    },
-                    populateLand: function(bo) {
-                        grassSeed.apply(bo, tempBoard, 1);
-                        grassGrow.apply(bo, tempBoard, 5);
-                        terraSmootherPr.apply(bo, tempBoard, 8);
-                        //terraMaxSmoother.apply(bo, tempBoard);
-                        forestSeeder.apply(bo, tempBoard);
-                        forestGrower.apply(bo, tempBoard, 6);
-                    
-                    }
-                    
-                }, 100);
-                
-                var plane = new TilePlane(world, 20, tileCanvas, overlayCanvas);
+                var plane = new TilePlane(bo, 20, tileCanvas, overlayCanvas);
              
                 resizeCallback();
                 plane.updateSize();
