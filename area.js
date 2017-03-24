@@ -30,16 +30,16 @@ function Area(board) {
                 vertexElement += 4;
 
                 gridVertices[vertex++] = x;
-                gridVertices[vertex++] = h - y - 1;
+                gridVertices[vertex++] = h - y;
 
                 gridVertices[vertex++] = x + 1;
-                gridVertices[vertex++] = h - y - 1;
+                gridVertices[vertex++] = h - y;
 
                 gridVertices[vertex++] = x;
-                gridVertices[vertex++] = h - (y + 1) - 1;
+                gridVertices[vertex++] = h - (y + 1);
 
                 gridVertices[vertex++] = x + 1;
-                gridVertices[vertex++] = h - (y + 1) - 1;
+                gridVertices[vertex++] = h - (y + 1);
             });
         
         vertexBuffer = gl.createBuffer();
@@ -85,11 +85,11 @@ function Area(board) {
     this.draw = function (posAttr, colorAttr) {
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
         gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(posAttr);
+        //gl.enableVertexAttribArray(posAttr);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
         gl.vertexAttribPointer(colorAttr, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(colorAttr);
+        //gl.enableVertexAttribArray(colorAttr);
         
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
         gl.drawElements(gl.TRIANGLES, gridElements.length, gl.UNSIGNED_SHORT, 0);

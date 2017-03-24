@@ -5,7 +5,7 @@ const GRASS = 2;
 const FOREST = 3;
 
 const TERRAIN_COLORS = [
-    new Color(50, 80, 155),
+    new Color(50, 80, 235),
     new Color(130, 110, 80),
     new Color(30, 170, 20),
     new Color(20, 110, 10),
@@ -74,12 +74,11 @@ function Terrain8LazyAdjacency(board) {
         if (!fetched) {
             for (var i = -1; i < 2; i++)
                 for (var j = -1; j < 2; j++) {
-                    if (i === 0 && j === 0)
-                        continue;
                     var tile = board.getTile(x + i, y + j);
                     if (tile !== undefined)
                         adjArray[tile.type]++;
                 }
+            adjArray[this.currentTile.type]--;
             fetched = true;
         }
         return adjArray[terrain] || 0;
@@ -87,12 +86,12 @@ function Terrain8LazyAdjacency(board) {
 }
 
 function Terrain8AdjMapper() {
-    this.iterate = (board, adjCallback, bounds) => {
+    this.iterate = (board, adjCallback) => {
         var lazyAdj = new Terrain8LazyAdjacency(board);
         board.iteratePositions((x, y, tile) => {
             lazyAdj.reset(tile, x, y);
             adjCallback(x, y, lazyAdj);            
-        }, bounds);
+        });
     };
 }
 
