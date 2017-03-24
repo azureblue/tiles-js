@@ -44,8 +44,8 @@
                 }
 
                 window.addEventListener("resize", resizeCallback);
-                var bo = new Board(500, 500);
-                var tempBoard = new Board(500, 500);
+                var bo = new Board(1000, 1000);
+                var tempBoard = new Board(1000, 1000);
                 tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
                 
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);

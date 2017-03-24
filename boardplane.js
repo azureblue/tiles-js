@@ -9,9 +9,11 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
     var offset = new Vec(0, 0);
     var cw, ch;
     var areaScreenSize;
-    var widthInChunks, heightInChunks;
+    var widthInAreas, heightInAreas;
+    var widthInTiles, heightInTiles;
     var posAttr;
     var colorAttr;
+    var scale = new Vec(1, 1);
     var gl;
     var world;
 
@@ -34,9 +36,13 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
         cw = canvas.clientWidth;
         ch = canvas.clientHeight;
         areaScreenSize = AREA_SIZE * tileSize;
-        widthInChunks = Math.ceil((cw + areaScreenSize - 1) / areaScreenSize) + 1;
-        heightInChunks = Math.ceil((ch + areaScreenSize - 1) / areaScreenSize) + 1;
-        gl.scale(1 / cw * tileSize, 1 / ch * tileSize);
+        widthInAreas = Math.floor((cw + areaScreenSize - 1) / areaScreenSize) + 1;
+        heightInAreas = Math.floor((ch + areaScreenSize - 1) / areaScreenSize) + 1;
+        widthInTiles = Math.floor((cw + tileSize - 1) / tileSize) + 1;
+        heightInTiles = Math.floor((ch + tileSize - 1) / tileSize) + 1;
+        scale.x = 1 / cw * tileSize * 2;
+        scale.y = 1 / ch * tileSize * 2;
+        gl.scale(scale.x, scale.y);
     }
 
     function render() {
@@ -48,29 +54,51 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
         yalign += yalign >= 0 ? 0 : tileSize;
         var firstTilePosOnScreen = new Vec(-xalign, -yalign);
         
-        var xalignArea = (offset.x * 2) % areaScreenSize;
-        var yalignArea = (offset.y * 2) % areaScreenSize;
+        var xalignArea = (offset.x) % areaScreenSize;
+        var yalignArea = (offset.y) % areaScreenSize;
         xalignArea += xalignArea >= 0 ? 0 : areaScreenSize;
         yalignArea += yalignArea >= 0 ? 0 : areaScreenSize;
         var firstTilePosOnScreenArea = new Vec(-xalignArea, -yalignArea);
         
+        var offsetGl = new Vec(offset.x * scale.x, offset.y * scale.y);
+        
         var areaTilePos = new Vec(
-            Math.floor((firstTilePosOnScreenArea.x + offset.x * 2) / areaScreenSize), 
-            Math.floor((firstTilePosOnScreenArea.y + offset.y * 2) / areaScreenSize));
+            Math.floor((firstTilePosOnScreenArea.x + offset.x) / areaScreenSize), 
+            Math.floor((firstTilePosOnScreenArea.y + offset.y) / areaScreenSize));
         
         gl.clearColor(0.0, 0.0, 0.0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.viewport(0, 0, cw, ch);
-        
-        for (var x = 0; x < widthInChunks; x++)
-            for (var y = 0; y < heightInChunks; y++) {
+        for (var x = 0; x < widthInAreas; x++)
+            for (var y = 0; y < heightInAreas; y++) {
+                
                 var area = world.getAreaBoard(areaTilePos.x + x, areaTilePos.y + y);
                 gl.translate(
-                    -1 + (firstTilePosOnScreenArea.x + x * areaScreenSize) / cw,
-                    -1 + (-firstTilePosOnScreenArea.y + - y * areaScreenSize) / ch
+                    -1 + (x * (areaScreenSize) + firstTilePosOnScreenArea.x ) / cw * 2,
+                    1 + (-(areaScreenSize + firstTilePosOnScreenArea.y) / ch * 2 - y * areaScreenSize / ch * 2)
                 );
                 area.draw(posAttr, colorAttr);
             }
+        
+                var gridLineWidth = tileSize / 150;
+        
+        octx.clearRect(0, 0, cw, ch);
+        octx.lineWidth = 1;
+        octx.strokeStyle = "rgba(50, 50, 50, " + gridLineWidth + ")";
+        
+        for (var i = 0; i < widthInTiles; i++) {
+            octx.beginPath();
+            octx.moveTo(i * tileSize + firstTilePosOnScreen.x, firstTilePosOnScreen.y);
+            octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
+            octx.stroke();
+        }
+
+        for (var i = 0; i < heightInTiles; i++) {
+            octx.beginPath();
+            octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
+            octx.lineTo(cw + tileSize, i * tileSize + firstTilePosOnScreen.y);
+            octx.stroke();
+        }
       
     }
 
