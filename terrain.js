@@ -23,12 +23,12 @@ function TerrainTile(type, color) {
 }
 
 TerrainTile.prototype = {};
-TerrainTile.prototype.isWaterType = function() { return this.type <= 0; };
-TerrainTile.prototype.isLandType = function() { return this.type > 0 && this.type < 4; };
 TerrainTile.prototype.setToTile = function(tile) {
     this.type = tile.type;
     this.color.setToColor(tile.color);
 };
+function isWaterType(te) { return te <= 0; };
+function isLandType(te) { return te > 0 && te < 4; };
 
 var tileUtils = new TerrainTileUtils();
 
@@ -47,7 +47,7 @@ function TerrainTileUtils(colorDelta = TERRAIN_COLOR_DELTA) {
 function RandomTerrainGenerator(values, weights) {
     this.generate = (board) => {
         board.iteratePositions((x, y) => {
-            board.set(x, y, tileUtils.createTile(weightedProb(values, weights)));
+            board.set(x, y, weightedProb(values, weights));
         });
     };
 }
@@ -72,16 +72,16 @@ function Terrain8LazyAdjacency(board) {
     };
     this.getTerrains = function(terrain) {
         if (!fetched) {
-            for (var i = -1; i < 2; i++)
-                for (var j = -1; j < 2; j++) {
+            for (var j = -1; j < 2; j++)
+                for (var i = -1; i < 2; i++) {
                     var tile = board.getTile(x + i, y + j);
                     if (tile !== undefined)
-                        adjArray[tile.type]++;
+                        adjArray[tile]++;
                 }
-            adjArray[this.currentTile.type]--;
+            adjArray[this.currentTile]--;
             fetched = true;
         }
-        return adjArray[terrain] || 0;
+        return adjArray[terrain];
     };
 }
 
@@ -97,100 +97,100 @@ function Terrain8AdjMapper() {
 
 function Terrain8Chooser(waterInitProb, dirtInitProb, grassInitProb, waterMulti, dirtMulti, grassMulti, currentMulti) {
     var terrAr = [0, 1, 2];
-    this.updateTile = (adj, targetTile) => {
+    this.chooseTile = (adj) => {
         var currentTile = adj.currentTile;
         var probs = [waterInitProb + adj.getTerrains(WATER) * waterMulti,
             dirtInitProb + adj.getTerrains(DIRT) * dirtMulti,
             grassInitProb + adj.getTerrains(GRASS) * grassMulti];
-        probs[currentTile.type] += currentMulti;
-        tileUtils.resetTile(targetTile, weightedProb(terrAr, probs));
+        probs[currentTile] += currentMulti;
+        return weightedProb(terrAr, probs);
     };
 }
 
 function Terrain8LandGrow(currentMulti) {
     var terrAr = [0, 1, 2];
-    this.updateTile = (adj, targetTile) => {
+    this.chooseTile = (adj) => {
         var currentTile = adj.currentTile;
-        if (currentTile.type !== WATER)
-            return targetTile.setToTile(currentTile);
+        if (currentTile !== WATER)
+            return (currentTile);
 
         var lands = adj.getTerrains(DIRT) + adj.getTerrains(GRASS);
         if (lands === 0)
-            return tileUtils.resetTile(targetTile, WATER);
+            return WATER;
 
         var probs = [currentMulti, lands + adj.getTerrains(DIRT) * 3, 0/*lands + adj.getTerrains(GRASS) * 2*/];
-        probs[currentTile.type] += currentMulti;
-        return tileUtils.resetTile(targetTile, weightedProb(terrAr, probs));
+        probs[currentTile] += currentMulti;
+        return (weightedProb(terrAr, probs));
     };
 }
 
 function Terrain8GrassGrow() {
     var terrAr = [1, 2];
-    this.updateTile = (adj, targetTile) => {
+    this.chooseTile = (adj) => {
         var currentTile = adj.currentTile;
-        if (currentTile.type !== DIRT)
-            return targetTile.setToTile(currentTile);
+        if (currentTile !== DIRT)
+            return currentTile;
 
         var grass = adj.getTerrains(GRASS);
         var water = adj.getTerrains(WATER);
 
         var probs = [20, water * 5 + grass * 10];
-        return tileUtils.resetTile(targetTile, weightedProb(terrAr, probs));
+        return (weightedProb(terrAr, probs));
     };
 }
 
 function Terrain8GrassSeed() {
     var terrAr = [1, 2];
-    this.updateTile = (adj, targetTile) => {
+    this.chooseTile = (adj) => {
         var currentTile = adj.currentTile;
-        if (currentTile.type !== DIRT)
-            return targetTile.setToTile(currentTile);
+        if (currentTile !== DIRT)
+            return (currentTile);
 
         var grass = adj.getTerrains(GRASS);
         var water = adj.getTerrains(WATER);
 
         var probs = [100, water * 10 + grass * 5 + 1];
-        return tileUtils.resetTile(targetTile, weightedProb(terrAr, probs));
+        return (weightedProb(terrAr, probs));
     };
 }
 
 function Terrain8ForestSeeder() {
     var terrAr = [GRASS, FOREST];
-    this.updateTile = (adj, targetTile) => {
+    this.chooseTile = (adj) => {
         var currentTile = adj.currentTile;
-        if (currentTile.type !== GRASS)
-            return targetTile.setToTile(currentTile);
+        if (currentTile !== GRASS)
+            return (currentTile);
 
         var grasses = adj.getTerrains(GRASS);
         if (grasses < 8)
-            return targetTile.setToTile(currentTile);
+            return (currentTile);
         var probs = [80, 1];
-        return tileUtils.resetTile(targetTile, weightedProb(terrAr, probs));
+        return (weightedProb(terrAr, probs));
     };
 }
 
 function Terrain8ForestGrow() {
     var terrAr = [GRASS, FOREST];
-    this.updateTile = (adj, targetTile) => {
+    this.chooseTile = (adj) => {
         var currentTile = adj.currentTile;
-        if (currentTile.type !== GRASS)
-            return targetTile.setToTile(currentTile);
+        if (currentTile !== GRASS)
+            return (currentTile);
 
         var grasses = adj.getTerrains(GRASS);
         var forests = adj.getTerrains(FOREST);
         if (forests === 0)
-            return targetTile.setToTile(currentTile);
+            return (currentTile);
         if (grasses + forests < 7)
-            return targetTile.setToTile(currentTile);
+            return (currentTile);
         var probs = [grasses, 2 * forests];
-        return tileUtils.resetTile(targetTile, weightedProb(terrAr, probs));
+        return (weightedProb(terrAr, probs));
     };
 }
 
 function Terrain8Smoother() {
     var probs = [...TERRAINS];
     var adjToProbs = function(adj) {
-        var currentType = adj.currentTile.type;
+        var currentType = adj.currentTile;
         probs.fill(0);
         for (var i = 0; i < TERRAINS.length; i++) {
             var t = TERRAINS[i];
@@ -198,17 +198,17 @@ function Terrain8Smoother() {
             probs[i] = ts * ts * 2;
         }
     };
-    this.updateTile = (adj, targetTile) => {
+    this.chooseTile = (adj) => {
         adjToProbs(adj);
-        return tileUtils.resetTile(targetTile, weightedProb(TERRAINS, probs));
+        return (weightedProb(TERRAINS, probs));
     };
 }
 
 function Terrain8MaxSmoother(smoothProbability = 1) {
-    this.updateTile = (adj, targetTile) => {
-        var currentType = adj.currentTile.type;
+    this.chooseTile = (adj) => {
+        var currentType = adj.currentTile;
         if (Math.random() < smoothProbability)
-            return targetTile.setToTile(adj.currentTile);
+            return (adj.currentTile);
         var bestTerrain = currentType;
         var bestNumber = 1;
         for (var i = 0; i < TERRAINS.length; i++) { 
@@ -221,7 +221,7 @@ function Terrain8MaxSmoother(smoothProbability = 1) {
                 bestTerrain = ter;
             }
         }
-        return tileUtils.resetTile(targetTile, bestTerrain);
+        return (bestTerrain);
     };
 }
 
@@ -229,19 +229,19 @@ function Terrain8LandSmoother() {
     var probs = [...LANDS];
     var adjToProbs = function(adj) {
         probs.fill(0);
-        let currentType = adj.currentTile.type;
+        let currentType = adj.currentTile;
         for (var i = 0; i < LANDS.length; i++) {
             var t = LANDS[i];
             var ts = adj.getTerrains(t) + (t === currentType ? 1 : 0);
             probs[i] = ts * ts * 2;
         }
     };
-    this.updateTile = (adj, targetTile) => {
+    this.chooseTile = (adj) => {
         let currentTile = adj.currentTile;
-        if (!currentTile.isLandType())
-            return targetTile.setToTile(currentTile);
+        if (!isLandType(currentTile))
+            return (currentTile);
         adjToProbs(adj);
-        return tileUtils.resetTile(targetTile, weightedProb(LANDS, probs));
+        return (weightedProb(LANDS, probs));
     };
 }
 

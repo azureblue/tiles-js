@@ -1,7 +1,3 @@
-function randInt(range) {
-    return Math.floor(Math.random() * range);
-}
-
 function Color(r, g, b) {
     this.r = r;
     this.g = g;
@@ -33,7 +29,7 @@ Color.fromStyle = (col) => {
     return new Color((colorInt >> 16) & 255, (colorInt >> 8) & 255, (colorInt >> 0) & 255);
 };
 
-function ColorRandomizer(delta) {
+function ColorRandomizer(delta, randInt = range => Math.floor(Math.random() * range)) {
     var ca = new Uint8ClampedArray(3);
     this.delta = delta;
     this.randomize = (col, inPlace = false) => {

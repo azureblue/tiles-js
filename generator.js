@@ -1,17 +1,3 @@
-function weightedProb(values, weights) {
-    var weightSum = 0;
-    for (var i = 0; i < weights.length; i++)
-        weightSum += weights[i];
-    if (weightSum <= 0)
-        throw "illegal state: weights sum <= 0";
-    var r = Math.random() * weightSum;
-    var idx = 0;
-    var weight = weights[0];
-    while (weight < r)
-        weight = weight + weights[++idx];
-    return values[idx];
-}
-
 function swapBoards(boardA, boardB) {
     var aArr = boardA.getArray();
     var bArr = boardB.getArray();
@@ -27,15 +13,12 @@ function Operator(adjacencyMapper, chooser) {
         for (var i = 0; i < times; i++) {
             adjacencyMapper.iterate(
                 board, 
-                (x, y, adj) => chooser.updateTile(adj, tempBoard.get(x, y))
+                (x, y, adj) => tempBoard.set(x, y, chooser.chooseTile(adj))
             );
             [board, tempBoard] = [tempBoard, board];
         }
         if (times % 2 === 1) {
-            board.iteratePositions((x, y, v) => { 
-                board.set(x, y, tempBoard.get(x, y));
-                tempBoard.set(x, y, v);
-            });
+            board.iteratePositions((x, y, v) => tempBoard.set(x, y, v));
         }
     };
 }

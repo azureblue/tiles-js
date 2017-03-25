@@ -8,6 +8,7 @@
             canvas {position: absolute; background: transparent;}
         </style>
         <script src="board.js"></script>
+        <script src="mathutils.js"></script>
         <script src="geom.js"></script>
         <script src="color.js"></script>
         <script src="boardplane.js"></script>
@@ -21,16 +22,7 @@
                 canvas.width = canvas.clientWidth;
                 canvas.height = canvas.clientHeight;
             }
-            function startWaterAnim(board, plane) {
-                window.setInterval(() => {
-                    board.iteratePositions((x, y, ter) => {
-                        if (ter.type === WATER && Math.random() < 0.2) {
-                            tileUtils.resetTile(ter, WATER);                            
-                        }
-                    });
-                    plane.render();
-                }, 200);
-            }
+
             function start() {
                 var tileCanvas = document.getElementById("canvas");
                 var overlayCanvas = document.getElementById("canvasOverlay");
@@ -44,9 +36,9 @@
                 }
 
                 window.addEventListener("resize", resizeCallback);
-                var bo = new Board(1000, 1000);
-                var tempBoard = new Board(1000, 1000);
-                tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, new TerrainTile(0, new Color(0, 0, 0))));
+                var bo = new Board(500, 500);
+                var tempBoard = new Board(500, 500);
+                tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, 0));
                 
                 var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
                 var adjMap = new Terrain8AdjMapper();

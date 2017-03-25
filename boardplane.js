@@ -1,5 +1,3 @@
-/* global Vec */
-
 function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
   const AREA_SIZE = 100;  
   var octx = overlayCanvas.getContext("2d");
