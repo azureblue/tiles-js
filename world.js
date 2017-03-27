@@ -1,7 +1,7 @@
 function AreaBoard(worldBoard, areaSize, gl) {
     var boardMap = new Map();
     var nullTile = -1;
-    var hash = (x, y) => (5279 * x + y) >>> 0;
+    var hash = (x, y) => (5279 * x + y) | 0;
     
     this.getAreaBoard = function(x, y) {
         var h = hash(x, y);
@@ -15,7 +15,6 @@ function AreaBoard(worldBoard, areaSize, gl) {
         var glBo = new Area(bo);
         glBo.init(gl);
         glBo.updateAll();
-        console.log("push " + x + " " + y);
         boardMap.set(h, glBo);
         return glBo;
     };

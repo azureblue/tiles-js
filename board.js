@@ -13,7 +13,7 @@ function Board(w, h) {
         var len = w * h;
         for (var i = 0; i < len; i++) {
             var x = i % w;
-            var y = (i / w) >>> 0;
+            var y = (i / w) | 0;
             callbackXYV(x, y, array[y * w + x]);
         }
     };    

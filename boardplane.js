@@ -1,11 +1,13 @@
 function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
-    const AREA_SIZE = 128;
+    const AREA_SIZE = 256;
     var octx = overlayCanvas.getContext("2d");
     var mouse_down_point, mouse_move_point, dragging = false;
     var touches = [];
     var selected;
     var offset = new Vec(0, 0);
     var cw, ch;
+    var pixXScale;
+    var pixYScale;
     var areaScreenSize;
     var widthInAreas, heightInAreas;
     var widthInTiles, heightInTiles;
@@ -34,32 +36,21 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
     function updateSize() {
         cw = canvas.clientWidth;
         ch = canvas.clientHeight;
+        pixXScale = 1 / cw * 2;
+        pixYScale = 1 / ch * 2;
         areaScreenSize = AREA_SIZE * tileSize;
         widthInAreas = Math.floor((cw + areaScreenSize - 1) / areaScreenSize) + 1;
         heightInAreas = Math.floor((ch + areaScreenSize - 1) / areaScreenSize) + 1;
         widthInTiles = Math.floor((cw + tileSize - 1) / tileSize) + 1;
         heightInTiles = Math.floor((ch + tileSize - 1) / tileSize) + 1;
-        scale.x = 1 / cw * tileSize * 2;
-        scale.y = 1 / ch * tileSize * 2;
+        scale.x = pixXScale * tileSize;
+        scale.y = pixYScale * tileSize;
         gl.scale(scale.x, scale.y);
     }
 
     function render() {
-        cw = canvas.clientWidth;
-        ch = canvas.clientHeight;
-        var xalign = offset.x % tileSize;
-        var yalign = offset.y % tileSize;
-        xalign += xalign >= 0 ? 0 : tileSize;
-        yalign += yalign >= 0 ? 0 : tileSize;
-        var firstTilePosOnScreen = new Vec(-xalign, -yalign);
-
-        var xalignArea = (offset.x) % areaScreenSize;
-        var yalignArea = (offset.y) % areaScreenSize;
-        xalignArea += xalignArea >= 0 ? 0 : areaScreenSize;
-        yalignArea += yalignArea >= 0 ? 0 : areaScreenSize;
-        var firstTilePosOnScreenArea = new Vec(-xalignArea, -yalignArea);
-
-        var offsetGl = new Vec(offset.x * scale.x, offset.y * scale.y);
+        var firstTilePosOnScreen = alignmentFor(tileSize);
+        var firstTilePosOnScreenArea = alignmentFor(areaScreenSize);
 
         var areaTilePos = new Vec(
                 Math.floor((firstTilePosOnScreenArea.x + offset.x) / areaScreenSize),
@@ -70,11 +61,10 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
         gl.viewport(0, 0, cw, ch);
         for (var x = 0; x < widthInAreas; x++)
             for (var y = 0; y < heightInAreas; y++) {
-
                 var area = world.getAreaBoard(areaTilePos.x + x, areaTilePos.y + y);
                 gl.translate(
-                        -1 + (x * (areaScreenSize) + firstTilePosOnScreenArea.x) / cw * 2,
-                        1 + (-(areaScreenSize + firstTilePosOnScreenArea.y) / ch * 2 - y * areaScreenSize / ch * 2)
+                        -1 + (x * areaScreenSize + firstTilePosOnScreenArea.x) * pixXScale,
+                        1 - ((y + 1) * areaScreenSize + firstTilePosOnScreenArea.y) * pixYScale
                         );
                 area.draw(posAttr, texCordAttr, texSamplerUnif);
             }
@@ -101,12 +91,17 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
                 octx.stroke();
             }
         }
+    }
 
+    function alignmentFor(size) {
+        var xalign = offset.x % size;
+        var yalign = offset.y % size;
+        xalign += xalign >= 0 ? 0 : size;
+        yalign += yalign >= 0 ? 0 : size;
+        return new Vec(-xalign, -yalign);
     }
 
     var tileFromScreen = (screenPos) => new Vec(tileXFromScreen(screenPos.x), tileYFromScreen(screenPos.y));
-    var screenRect = (x, y) =>
-        new Rect(x * tileSize - offset.x, y * tileSize - offset.y, tileSize, tileSize);
 
     var tileXFromScreen = (screenX) => Math.floor((screenX + offset.x) / tileSize);
     var tileYFromScreen = (screenY) => Math.floor((screenY + offset.y) / tileSize);
@@ -221,7 +216,7 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
         gl.translate = function (x, y) {
             gl.uniform4f(translation, x, y, 0, 0);
         };
-
+        
         gl.scale = function (scx, scy) {
             gl.uniformMatrix4fv(scale, false, new Float32Array([
                 scx, 0, 0, 0,
@@ -241,15 +236,15 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
                 "   gl_Position = scale * vec4(pos, 1) + translation;" +
                 "   vTexPos = aTexPos;" +
                 "}";
-
+        
         var fragmentShaderSrc =`
                 precision mediump float;
                 uniform sampler2D uSampler;
                 varying vec2 vTexPos;
                 void main(void) {
-                   gl_FragColor = texture2D(uSampler, vTexPos);
+                   gl_FragColor = texture2D(uSampler, vTexPos);        
                 }
-            `;
+        `;
 
         var vertexShader = gl.createShader(gl.VERTEX_SHADER);
         gl.shaderSource(vertexShader, vertexShaderSrc);

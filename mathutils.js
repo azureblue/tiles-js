@@ -6,9 +6,7 @@ function LCGRandomGenerator(seed = 0) {
         return ar[0];
     };
     this.seed = seed => ar[0] = seed;
-    this.rand = () => {
-        return ar[0] / 4294967296;
-    };
+    this.rand = () =>  nextRand() / 4294967296;
     this.randInt = (range) => nextRand() % range;
 }
 
