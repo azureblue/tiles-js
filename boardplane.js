@@ -59,6 +59,7 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
         gl.clearColor(0.0, 0.0, 0.0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.viewport(0, 0, cw, ch);
+        gl.setGrid(firstTilePosOnScreen.x, ch - firstTilePosOnScreen.y, tileSize);
         for (var x = 0; x < widthInAreas; x++)
             for (var y = 0; y < heightInAreas; y++) {
                 var area = world.getAreaBoard(areaTilePos.x + x, areaTilePos.y + y);
@@ -69,28 +70,27 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
                 area.draw(posAttr, texCordAttr, texSamplerUnif);
             }
 
-        var gridLineWidth = tileSize / 150;
-
-
-        octx.clearRect(0, 0, cw, ch);
-        if (tileSize > 4) {
-            octx.lineWidth = 1;
-            octx.strokeStyle = "rgba(50, 50, 50, " + gridLineWidth + ")";
-
-            for (var i = 0; i < widthInTiles; i++) {
-                octx.beginPath();
-                octx.moveTo(i * tileSize + firstTilePosOnScreen.x, firstTilePosOnScreen.y);
-                octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
-                octx.stroke();
-            }
-
-            for (var i = 0; i < heightInTiles; i++) {
-                octx.beginPath();
-                octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
-                octx.lineTo(cw + tileSize, i * tileSize + firstTilePosOnScreen.y);
-                octx.stroke();
-            }
-        }
+//        var gridLineWidth = tileSize / 150;
+//
+//        octx.clearRect(0, 0, cw, ch);
+//        if (tileSize > 4) {
+//            octx.lineWidth = 1;
+//            octx.strokeStyle = "rgba(50, 50, 50, " + gridLineWidth + ")";
+//
+//            for (var i = 0; i < widthInTiles; i++) {
+//                octx.beginPath();
+//                octx.moveTo(i * tileSize + firstTilePosOnScreen.x, firstTilePosOnScreen.y);
+//                octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
+//                octx.stroke();
+//            }
+//
+//            for (var i = 0; i < heightInTiles; i++) {
+//                octx.beginPath();
+//                octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
+//                octx.lineTo(cw + tileSize, i * tileSize + firstTilePosOnScreen.y);
+//                octx.stroke();
+//            }
+//        }
     }
 
     function alignmentFor(size) {
@@ -217,6 +217,10 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
             gl.uniform4f(translation, x, y, 0, 0);
         };
         
+        gl.setGrid = function(x, y, tilesize) {
+            gl.uniform4f(grid, x, y, tilesize, 0);
+        };
+
         gl.scale = function (scx, scy) {
             gl.uniformMatrix4fv(scale, false, new Float32Array([
                 scx, 0, 0, 0,
@@ -226,23 +230,37 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
             ]));
         };
 
-        var vertexShaderSrc =
-                "attribute vec3 pos;" +
-                "attribute vec2 aTexPos;" +
-                "uniform mat4 scale;" +
-                "uniform vec4 translation;" +
-                "varying vec2 vTexPos;" +
-                "void main(void) {" +
-                "   gl_Position = scale * vec4(pos, 1) + translation;" +
-                "   vTexPos = aTexPos;" +
-                "}";
+        var vertexShaderSrc = `
+                attribute vec3 pos;
+                attribute vec2 aTexPos;
+                uniform mat4 scale;
+                uniform vec4 translation;
+                varying vec2 vTexPos;
         
-        var fragmentShaderSrc =`
+                void main(void) {
+                   gl_Position = scale * vec4(pos, 1) + translation;
+                   vTexPos = aTexPos;
+                }
+        `;
+
+        var fragmentShaderSrc = `
                 precision mediump float;
                 uniform sampler2D uSampler;
+                uniform vec4 grid;
                 varying vec2 vTexPos;
+                
+                const vec4 gridColor = vec4(0.2, 0.2, 0.2, 1);  
+        
                 void main(void) {
                    gl_FragColor = texture2D(uSampler, vTexPos);        
+                   if (grid.z < 5.0)
+                       return;
+                   float tileSize = float(grid[2]);
+                   float gridWidth = tileSize < 80.0 ? 1.0 : 2.0;
+                   bool gx = mod(gl_FragCoord.x - grid.x, tileSize) < gridWidth;
+                   bool gy = mod(gl_FragCoord.y - grid.y, tileSize) < gridWidth;
+                   if (gx || gy)
+                       gl_FragColor = mix(gl_FragColor, gridColor, sqrt(min(tileSize / 100.0, 1.0)) * 0.3);
                 }
         `;
 
@@ -262,6 +280,7 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
 
         var translation = gl.getUniformLocation(program, "translation");
         var scale = gl.getUniformLocation(program, "scale");
+        var grid = gl.getUniformLocation(program, "grid");
 
         posAttr = gl.getAttribLocation(program, "pos");
         texCordAttr = gl.getAttribLocation(program, "aTexPos");
