@@ -36,41 +36,32 @@
                 }
 
                 window.addEventListener("resize", resizeCallback);
-                var bo = new Board(500, 500);
-                var tempBoard = new Board(500, 500);
-                tempBoard.iteratePositions((x, y) => tempBoard.set(x, y, 0));
+                var bo = new Board(300, 300);
+                var tempBoard = new Board(300, 300);
                 
-                var randGen = new RandomTerrainGenerator([0, 1], [150, 1]);
+                var randGen = new RandomTerrainGenerator([0, 1], [500, 1]);
                 var adjMap = new Terrain8AdjMapper();
-                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2));
-                var terraSmoother = new Operator(adjMap, new Terrain8Smoother());
-                var terraMaxSmoother = new Operator(adjMap, new Terrain8MaxSmoother(0.5));
+                var terraGrow = new Operator(adjMap, new Terrain8LandGrow(2, 3));
+                var annSmoother = new Operator(adjMap, new Terrain8Ann(WATER, DIRT));
                 var terraSmootherPr = new Operator(adjMap, new Terrain8LandSmoother());
-                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeeder());
-                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow());
-                var grassGrow = new Operator(adjMap, new Terrain8GrassGrow());
-                var grassSeed = new Operator(adjMap, new Terrain8GrassSeed());
+                var forestSeeder = new Operator(adjMap, new Terrain8ForestSeed(1/500));
+                var forestGrower = new Operator(adjMap, new Terrain8ForestGrow(4, 10));
+                var grassGrow = new Operator(adjMap, new Terrain8GrassGen(10, 2, 10, 0));
+                var grassSeed = new Operator(adjMap, new Terrain8GrassGen(200, 8, 5, 1));
                 randGen.generate(bo);
-                terraGrow.apply(bo, tempBoard, 9);
-                terraSmoother.apply(bo, tempBoard, 4);
+                terraGrow.apply(bo, tempBoard, 16);
+                annSmoother.apply(bo, tempBoard, 50);
                 grassSeed.apply(bo, tempBoard, 1);
-                grassGrow.apply(bo, tempBoard, 5);
+                grassGrow.apply(bo, tempBoard, 8);
                 terraSmootherPr.apply(bo, tempBoard, 8);
-                terraMaxSmoother.apply(bo, tempBoard);
                 forestSeeder.apply(bo, tempBoard);
-                forestGrower.apply(bo, tempBoard, 6);
+                forestGrower.apply(bo, tempBoard, 10);
                 
                 var plane = new TilePlane(bo, 20, tileCanvas, overlayCanvas);
              
                 resizeCallback();
                 plane.updateSize();
                 plane.render();
-//                function renderLoop() {
-//                    plane.render();
-//                    window.requestAnimationFrame(renderLoop);
-//                }
-//                window.requestAnimationFrame(renderLoop);
-                //startWaterAnim(board, plane);
             }
         </script>
     </head>

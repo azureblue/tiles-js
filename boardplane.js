@@ -69,28 +69,6 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
                         );
                 area.draw(posAttr, texCordAttr, texSamplerUnif);
             }
-
-//        var gridLineWidth = tileSize / 150;
-//
-//        octx.clearRect(0, 0, cw, ch);
-//        if (tileSize > 4) {
-//            octx.lineWidth = 1;
-//            octx.strokeStyle = "rgba(50, 50, 50, " + gridLineWidth + ")";
-//
-//            for (var i = 0; i < widthInTiles; i++) {
-//                octx.beginPath();
-//                octx.moveTo(i * tileSize + firstTilePosOnScreen.x, firstTilePosOnScreen.y);
-//                octx.lineTo(i * tileSize + firstTilePosOnScreen.x, ch + tileSize);
-//                octx.stroke();
-//            }
-//
-//            for (var i = 0; i < heightInTiles; i++) {
-//                octx.beginPath();
-//                octx.moveTo(firstTilePosOnScreen.x, i * tileSize + firstTilePosOnScreen.y);
-//                octx.lineTo(cw + tileSize, i * tileSize + firstTilePosOnScreen.y);
-//                octx.stroke();
-//            }
-//        }
     }
 
     function alignmentFor(size) {
@@ -260,7 +238,7 @@ function TilePlane(worldBoard, tileSize, canvas, overlayCanvas) {
                    bool gx = mod(gl_FragCoord.x - grid.x, tileSize) < gridWidth;
                    bool gy = mod(gl_FragCoord.y - grid.y, tileSize) < gridWidth;
                    if (gx || gy)
-                       gl_FragColor = mix(gl_FragColor, gridColor, sqrt(min(tileSize / 100.0, 1.0)) * 0.3);
+                       gl_FragColor = mix(gl_FragColor, gridColor, sqrt(min(tileSize / 100.0, 1.0)) * 0.4);
                 }
         `;
 

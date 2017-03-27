@@ -10,6 +10,14 @@ function LCGRandomGenerator(seed = 0) {
     this.randInt = (range) => nextRand() % range;
 }
 
+function randomBool(prob = 0.5) {
+    return Math.random() < prob;
+}
+
+function weightedRandomBool(w1, w2) {
+    return Math.random() * (w1 + w2) > w1;
+}
+
 function weightedProb(values, weights) {
     var weightSum = 0;
     for (var i = 0; i < weights.length; i++)

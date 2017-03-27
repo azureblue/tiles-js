@@ -17,32 +17,8 @@ const TERRAINS = [DEEP_WATER, WATER, DIRT, GRASS, FOREST];
 const LANDS = [DIRT, GRASS, FOREST];
 const WATERS = [DEEP_WATER, WATER];
 
-function TerrainTile(type, color) {
-    this.type = type;
-    this.color = color;
-}
-
-TerrainTile.prototype = {};
-TerrainTile.prototype.setToTile = function(tile) {
-    this.type = tile.type;
-    this.color.setToColor(tile.color);
-};
-function isWaterType(te) { return te <= 0; };
-function isLandType(te) { return te > 0 && te < 4; };
-
-var tileUtils = new TerrainTileUtils();
-
-function TerrainTileUtils(colorDelta = TERRAIN_COLOR_DELTA) {
-    var colorRand = new ColorRandomizer(colorDelta);
-    this.createTile = (type) => new TerrainTile(type, colorRand.randomize(TERRAIN_COLORS[type]));
-    this.newTile = () => new TerrainTile(0, new Color(0, 0, 0));
-    this.resetTile = (tile, type) => {
-        tile.type = type;
-        tile.color.setToColor(TERRAIN_COLORS[type]);
-        colorRand.randomize(tile.color, true);
-        return tile;
-    };
-}
+function isWaterType(te) { return te <= 0; }
+function isLandType(te) { return te > 0 && te < 4; }
 
 function RandomTerrainGenerator(values, weights) {
     this.generate = (board) => {
@@ -77,6 +53,8 @@ function Terrain8LazyAdjacency(board) {
                     var tile = board.getTile(x + i, y + j);
                     if (tile !== undefined)
                         adjArray[tile]++;
+                    else
+                        adjArray[WATER]++;
                 }
             adjArray[this.currentTile]--;
             fetched = true;
@@ -95,37 +73,29 @@ function Terrain8AdjMapper() {
     };
 }
 
-function Terrain8Chooser(waterInitProb, dirtInitProb, grassInitProb, waterMulti, dirtMulti, grassMulti, currentMulti) {
-    var terrAr = [0, 1, 2];
+function Terrain8LandGrow(waterWeight = 2, dirtMulti = 3) {
     this.chooseTile = (adj) => {
-        var currentTile = adj.currentTile;
-        var probs = [waterInitProb + adj.getTerrains(WATER) * waterMulti,
-            dirtInitProb + adj.getTerrains(DIRT) * dirtMulti,
-            grassInitProb + adj.getTerrains(GRASS) * grassMulti];
-        probs[currentTile] += currentMulti;
-        return weightedProb(terrAr, probs);
+        if (adj.currentTile !== WATER)
+            return (adj.currentTile);
+        return weightedRandomBool(waterWeight, adj.getTerrains(DIRT) * dirtMulti) ? DIRT : WATER;
     };
 }
 
-function Terrain8LandGrow(currentMulti) {
-    var terrAr = [0, 1, 2];
+function Terrain8Ann(backgroundTerrain, liveTerrain) {
     this.chooseTile = (adj) => {
-        var currentTile = adj.currentTile;
-        if (currentTile !== WATER)
-            return (currentTile);
-
-        var lands = adj.getTerrains(DIRT) + adj.getTerrains(GRASS);
-        if (lands === 0)
-            return WATER;
-
-        var probs = [currentMulti, lands + adj.getTerrains(DIRT) * 3, 0/*lands + adj.getTerrains(GRASS) * 2*/];
-        probs[currentTile] += currentMulti;
-        return (weightedProb(terrAr, probs));
+        switch (adj.currentTile) {
+            case (backgroundTerrain):
+                return (adj.getTerrains(liveTerrain) > 5 || adj.getTerrains(liveTerrain) === 4) ? 
+                    liveTerrain : backgroundTerrain;
+            case (liveTerrain):
+                return (adj.getTerrains(liveTerrain) > 4 || adj.getTerrains(liveTerrain) === 3) ? 
+                    liveTerrain : backgroundTerrain;              
+        }        
+        return adj.currentTile;     
     };
 }
 
-function Terrain8GrassGrow() {
-    var terrAr = [1, 2];
+function Terrain8GrassGen(dirtWeight = 100, waterMulti = 10, grassMulti = 5, grassAdd = 1) {
     this.chooseTile = (adj) => {
         var currentTile = adj.currentTile;
         if (currentTile !== DIRT)
@@ -134,56 +104,34 @@ function Terrain8GrassGrow() {
         var grass = adj.getTerrains(GRASS);
         var water = adj.getTerrains(WATER);
 
-        var probs = [20, water * 5 + grass * 10];
-        return (weightedProb(terrAr, probs));
+        return weightedRandomBool(dirtWeight, water * waterMulti + grass * grassMulti + grassAdd) ?
+            GRASS : DIRT;
     };
 }
 
-function Terrain8GrassSeed() {
-    var terrAr = [1, 2];
-    this.chooseTile = (adj) => {
-        var currentTile = adj.currentTile;
-        if (currentTile !== DIRT)
-            return (currentTile);
-
-        var grass = adj.getTerrains(GRASS);
-        var water = adj.getTerrains(WATER);
-
-        var probs = [100, water * 10 + grass * 5 + 1];
-        return (weightedProb(terrAr, probs));
-    };
-}
-
-function Terrain8ForestSeeder() {
-    var terrAr = [GRASS, FOREST];
+function Terrain8ForestSeed(prob = 1/80) {
     this.chooseTile = (adj) => {
         var currentTile = adj.currentTile;
         if (currentTile !== GRASS)
-            return (currentTile);
-
+            return currentTile;
         var grasses = adj.getTerrains(GRASS);
         if (grasses < 8)
-            return (currentTile);
-        var probs = [80, 1];
-        return (weightedProb(terrAr, probs));
+            return currentTile;
+        return randomBool(prob) ? FOREST : GRASS;
     };
 }
 
-function Terrain8ForestGrow() {
+function Terrain8ForestGrow(grassMulti = 1, forsetMulti = 2) {
     var terrAr = [GRASS, FOREST];
     this.chooseTile = (adj) => {
-        var currentTile = adj.currentTile;
-        if (currentTile !== GRASS)
-            return (currentTile);
-
+        if (adj.currentTile !== GRASS)
+            return adj.currentTile;
         var grasses = adj.getTerrains(GRASS);
         var forests = adj.getTerrains(FOREST);
-        if (forests === 0)
-            return (currentTile);
-        if (grasses + forests < 7)
-            return (currentTile);
-        var probs = [grasses, 2 * forests];
-        return (weightedProb(terrAr, probs));
+        if (forests === 0 || grasses + forests < 7)
+            return adj.currentTile;
+        return weightedRandomBool(grasses * grassMulti, forests * forsetMulti) ?
+            FOREST : GRASS;
     };
 }
 
@@ -204,15 +152,15 @@ function Terrain8Smoother() {
     };
 }
 
-function Terrain8MaxSmoother(smoothProbability = 1) {
+function Terrain8MaxSmoother(terrains, smoothProbability = 1) {
     this.chooseTile = (adj) => {
         var currentType = adj.currentTile;
         if (Math.random() < smoothProbability)
             return (adj.currentTile);
         var bestTerrain = currentType;
         var bestNumber = 1;
-        for (var i = 0; i < TERRAINS.length; i++) { 
-            var ter = TERRAINS[i];
+        for (var i = 0; i < terrains.length; i++) { 
+            var ter = terrains[i];
             var num = adj.getTerrains(ter);
             if (ter === currentType)
                 num++;
@@ -221,7 +169,7 @@ function Terrain8MaxSmoother(smoothProbability = 1) {
                 bestTerrain = ter;
             }
         }
-        return (bestTerrain);
+        return bestTerrain;
     };
 }
 
