@@ -48,9 +48,10 @@
                 var forestGrower = new Operator(adjMap, new Terrain8ForestGrow(4, 10));
                 var grassGrow = new Operator(adjMap, new Terrain8GrassGen(10, 2, 10, 0));
                 var grassSeed = new Operator(adjMap, new Terrain8GrassGen(200, 8, 5, 1));
+                var ann = new Terrain8CAAnnOp(WATER, DIRT);
                 randGen.generate(bo);
                 terraGrow.apply(bo, tempBoard, 16);
-                annSmoother.apply(bo, tempBoard, 50);
+                ann.apply(bo, tempBoard, 50);
                 grassSeed.apply(bo, tempBoard, 1);
                 grassGrow.apply(bo, tempBoard, 8);
                 terraSmootherPr.apply(bo, tempBoard, 8);

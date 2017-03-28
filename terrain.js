@@ -81,6 +81,54 @@ function Terrain8LandGrow(waterWeight = 2, dirtMulti = 3) {
     };
 }
 
+function Terrain8CAAnnOp(backgroundTerrain, liveTerrain) {
+    this.apply = (board, tempBoard, times = 1) => {
+        var w = board.getWidth();
+        var h = board.getHeight();
+        var len = w * h;
+        var boardArr = board.getArray();
+        var arSrc = new Uint8Array(w * h);
+        var arDest = new Uint8Array(w * h);
+        var upperSums = new Uint8Array(w * h);
+        
+        for (var i = 0; i < len; i++)
+            arSrc[i] = boardArr[i] === liveTerrain ? 1 : 0;
+        
+        for (var i = 0; i < w; i++)
+            arSrc[i] = backgroundTerrain;
+        for (var i = 0; i < w; i++)
+            arSrc[w * (h - 1) + i] = backgroundTerrain;
+        for (var i = 0; i < h; i++)
+            arSrc[w * i] = backgroundTerrain;
+        for (var i = 0; i < h; i++)
+            arSrc[w * i + (w - 1)] = backgroundTerrain;
+        
+        for (var t = 0; t < times; t++) {
+            for (var i = w + 1; i < w + w - 1; i++) {
+                var upperSum = arSrc[i - w - 1] + arSrc[i - w] + arSrc[i - w + 1];
+                var middeSum = arSrc[i - 1] + arSrc[i] + arSrc[i + 1];                
+                upperSums[i - w] = upperSum;
+                upperSums[i] = middeSum;
+            }
+            for (var y = 1; y < w - 1; y++)
+                for (var x = 1; x < w - 1; x++) {
+                    var i = y * w + x;                    
+                    var lowerSum = arSrc[i + w - 1] + arSrc[i + w] + arSrc[i + w + 1];
+                    upperSums[i + w] = lowerSum;
+                    var current = arSrc[i];
+                    var adj = upperSums[i - w] + upperSums[i] + lowerSum - current;
+                    if (current === 0)
+                        arDest[i] = (adj > 5 || adj === 4) ? 1 : 0;
+                    else
+                        arDest[i] = (adj > 4 || adj === 3) ? 1 : 0;                
+                }
+            [arSrc, arDest] = [arDest, arSrc];
+        }
+        for (var i = 0; i < len; i++)
+            boardArr[i] = arDest[i] === 1 ? liveTerrain : backgroundTerrain;
+    };
+} 
+
 function Terrain8Ann(backgroundTerrain, liveTerrain) {
     this.chooseTile = (adj) => {
         switch (adj.currentTile) {
