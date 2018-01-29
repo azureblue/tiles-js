@@ -73,23 +73,6 @@ function Terrain8AdjMapper() {
     };
 }
 
-function Terrain8FastAdjacency() {
-    var terrainLut;
-    this.currentTile = 0;
-    this.reset = (lut, ct) => {
-        terrainLut = lut;
-        this.currentTile = ct;
-        return this;
-    };
-    this.getTerrains = function(terrain) {        
-        return terrainLut[terrain];
-    };
-}
-
-function Terrain8FastAdjMapper() {
-    var fastAdj = new Terrain8FastAdjacency();
-    this.map = (lut, ct) => fastAdj.reset(lut, ct);
-}
 
 function Terrain8LandGrow(waterWeight = 2, dirtMulti = 3) {
     this.chooseTile = (adj) => {

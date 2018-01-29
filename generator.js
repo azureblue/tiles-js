@@ -23,7 +23,18 @@ function Operator(adjacencyMapper, chooser) {
     };
 }
 
-function FastOperator(fastAdjMapper, chooser) {
+function FastOperator(chooser) {
+    const terrainLookUp = new Uint8Array(TERRAINS.length);
+    let currentTile = 0;
+    let adj = {
+        reset: (terrains, ct) => {
+            terrainLookUp.set(terrains);
+            currentTile = ct;
+            return adj;
+        },
+        getTerrains: (terrain) => this.terrainLookUp[terrain]
+    };
+
     this.apply = (board, times = 1) => {
         var w = board.getWidth();
         var h = board.getHeight();
@@ -35,30 +46,30 @@ function FastOperator(fastAdjMapper, chooser) {
         for (var i = 0; i < len; i++)
             arSrc[i] = boardArr[i];
 
-        var lut = new Uint8Array(TERRAINS.length);
+        var terrains = new Uint8Array(TERRAINS.length);
 
         for (var t = 0; t < times; t++) {
             for (var y = 1; y < w - 1; y++)
                 for (var x = 1; x < w - 1; x++) {
                     var i = y * w + x;
-                    lut.fill(0);
-                    lut[arSrc[i - w - 1]]++;
-                    lut[arSrc[i - w]]++;
-                    lut[arSrc[i - w + 1]]++;
-                    lut[arSrc[i- 1]]++;
-                    lut[arSrc[i]]++;
-                    lut[arSrc[i + 1]]++;
-                    lut[arSrc[i + w - 1]]++;
-                    lut[arSrc[i + w]]++;
-                    lut[arSrc[i + w + 1]]++;
+                    terrains.fill(0);
+                    terrains[arSrc[i - w - 1]]++;
+                    terrains[arSrc[i - w]]++;
+                    terrains[arSrc[i - w + 1]]++;
+                    terrains[arSrc[i- 1]]++;
+                    terrains[arSrc[i]]++;
+                    terrains[arSrc[i + 1]]++;
+                    terrains[arSrc[i + w - 1]]++;
+                    terrains[arSrc[i + w]]++;
+                    terrains[arSrc[i + w + 1]]++;
                     var current = arSrc[i];
-                    lut[current]--;
-                    arDest[i] = chooser.chooseTile(fastAdjMapper.map(lut, current));
+                    terrains[current]--;
+                    arDest[i] = chooser.chooseTile(adj.reset(terrains, current));
                 }
                 [arSrc, arDest] = [arDest, arSrc];
         }
         for (var i = 0; i < len; i++)
-            boardArr[i] = arDest[i];
+            boardArr[i] = arSrc[i];
     };
     
 }

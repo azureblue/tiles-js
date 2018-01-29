@@ -16,5 +16,13 @@ function Board(w, h) {
             var y = (i / w) | 0;
             callbackXYV(x, y, array[y * w + x]);
         }
-    };    
+    };
+    this.print = () => {
+        for (var j = 0; j < w; j++) {
+            line = "";
+            for (var i = 0; i < w; i++)
+                line = line + this.get(i, j) + " ";
+            console.log(j + ": " + line);
+        }
+    }
 }
