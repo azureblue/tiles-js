@@ -35,46 +35,31 @@
                     plane.render();
                 }
 
-                var b1 = new Board(5, 5);
-                var b2 = new Board(5, 5);
-                var tmp = new Board(5, 5);
-
-                new Operator(new Terrain8AdjMapper(), {chooseTile: (adj) => 1}).apply(b1, tmp);
-                new FastOperator({chooseTile: (adj) => 1}).apply(b2, 1);
-
-                b1.print();
-                console.log("##################################################")
-                b2.print();
-
-                // window.addEventListener("resize", resizeCallback);
-                // var bo = new Board(300, 300);
-                // var tempBoard = new Board(300, 300);
-                //
-                // var randGen = new RandomTerrainGenerator([0, 1], [500, 1]);
-                // var adjMap = new Terrain8AdjMapper();
-                // var fastAdjMap = new Terrain8FastAdjMapper();
-                // var terraGrow = new FastOperator(fastAdjMap, new Terrain8LandGrow(2, 3));
-                // var annSmoother = new Operator(adjMap, new Terrain8Ann(WATER, DIRT));
-                // var terraSmootherPr = new FastOperator(fastAdjMap, new Terrain8LandSmoother());
-                // var forestSeeder = new Operator(adjMap, new Terrain8ForestSeed(1/500));
-                // var forestGrower = new FastOperator(fastAdjMap, new Terrain8ForestGrow(4, 10));
-                // var grassGrow = new FastOperator(fastAdjMap, new Terrain8GrassGen(10, 2, 10, 0));
-                // var grassSeed = new Operator(adjMap, new Terrain8GrassGen(200, 8, 5, 1));
-                // var ann = new Terrain8CAAnnOp(WATER, DIRT);
-                // randGen.generate(bo);
-                // terraGrow.apply(bo, 16);
+                window.addEventListener("resize", resizeCallback);
+                var bo = new Board(300, 300);
+                var randGen = new RandomTerrainGenerator([0, 1], [500, 1]);
+                var terraGrow = new FastOperator(new Terrain8LandGrow(2, 3));
+                var annSmoother = new Operator(new Terrain8Ann(WATER, DIRT));
+                var terraSmootherPr = new FastOperator(new Terrain8LandSmoother());
+                var forestSeeder = new Operator(new Terrain8ForestSeed(1/500));
+                var forestGrower = new FastOperator(new Terrain8ForestGrow(4, 10));
+                var grassGrow = new FastOperator(new Terrain8GrassGen(10, 2, 10, 0));
+                var grassSeed = new Operator(new Terrain8GrassGen(200, 8, 5, 1));
+                var ann = new Terrain8CAAnnOp(WATER, DIRT);
+                randGen.generate(bo);
+                terraGrow.apply(bo, 14);
                 // ann.apply(bo, 50);
-                // grassSeed.apply(bo, tempBoard, 1);
+                // grassSeed.apply(bo, 1);
                 // grassGrow.apply(bo, 8);
                 // terraSmootherPr.apply(bo, 8);
-                // forestSeeder.apply(bo, tempBoard);
+                // forestSeeder.apply(bo);
                 // forestGrower.apply(bo, 10);
-                //
-                // var plane = new TilePlane(bo, 20, tileCanvas, overlayCanvas);
-                //
-                // resizeCallback();
-                // plane.updateSize();
-                // plane.render();
+
+                var plane = new TilePlane(bo, 20, tileCanvas, overlayCanvas);
+
+                resizeCallback();
+                plane.updateSize();
+                plane.render();
             }
         </script>
     </head>

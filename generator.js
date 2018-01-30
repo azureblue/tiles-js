@@ -8,8 +8,10 @@ function swapBoards(boardA, boardB) {
     }
 }
 
-function Operator(adjacencyMapper, chooser) {
-    this.apply = (board, tempBoard, times = 1) => {
+function Operator(chooser) {
+    const adjacencyMapper = new Terrain8AdjMapper();
+    this.apply = (board, times = 1) => {
+        let tempBoard = Board.createFrom(board);
         for (var i = 0; i < times; i++) {
             adjacencyMapper.iterate(
                 board,
@@ -24,15 +26,11 @@ function Operator(adjacencyMapper, chooser) {
 }
 
 function FastOperator(chooser) {
-    const terrainLookUp = new Uint8Array(TERRAINS.length);
+    const terrains = new Uint8Array(TERRAINS.length);
     let currentTile = 0;
     let adj = {
-        reset: (terrains, ct) => {
-            terrainLookUp.set(terrains);
-            currentTile = ct;
-            return adj;
-        },
-        getTerrains: (terrain) => this.terrainLookUp[terrain]
+        get currentTile() { return currentTile; },
+        getTerrains: (terrain) => terrains[terrain]
     };
 
     this.apply = (board, times = 1) => {
@@ -43,10 +41,7 @@ function FastOperator(chooser) {
         var arSrc = new Int8Array(w * h);
         var arDest = new Int8Array(w * h);
 
-        for (var i = 0; i < len; i++)
-            arSrc[i] = boardArr[i];
-
-        var terrains = new Uint8Array(TERRAINS.length);
+        arSrc.set(boardArr);
 
         for (var t = 0; t < times; t++) {
             for (var y = 1; y < w - 1; y++)
@@ -56,20 +51,19 @@ function FastOperator(chooser) {
                     terrains[arSrc[i - w - 1]]++;
                     terrains[arSrc[i - w]]++;
                     terrains[arSrc[i - w + 1]]++;
-                    terrains[arSrc[i- 1]]++;
-                    terrains[arSrc[i]]++;
+                    terrains[arSrc[i - 1]]++;
                     terrains[arSrc[i + 1]]++;
                     terrains[arSrc[i + w - 1]]++;
                     terrains[arSrc[i + w]]++;
                     terrains[arSrc[i + w + 1]]++;
-                    var current = arSrc[i];
-                    terrains[current]--;
-                    arDest[i] = chooser.chooseTile(adj.reset(terrains, current));
+
+                    currentTile = arSrc[i];
+
+                    arDest[i] = chooser.chooseTile(adj);
                 }
-                [arSrc, arDest] = [arDest, arSrc];
+            [arSrc, arDest] = [arDest, arSrc];
         }
-        for (var i = 0; i < len; i++)
-            boardArr[i] = arSrc[i];
+        boardArr.set(arSrc);
     };
-    
+
 }
